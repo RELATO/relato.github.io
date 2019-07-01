@@ -1063,7 +1063,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (163:14) {#each itemsTab1 as item}
+    // (166:14) {#each itemsTab1 as item}
     function create_each_block_2(ctx) {
     	var label, input, t0, a, t1_value = ctx.item.nome, t1, t2, img, img_src_value, a_href_value, label_transition, current, dispose;
 
@@ -1082,13 +1082,13 @@ var app = (function () {
     			img = element("img");
     			input.className = "uk-checkbox";
     			attr(input, "type", "checkbox");
-    			add_location(input, file$1, 164, 18, 5198);
+    			add_location(input, file$1, 167, 18, 5331);
     			img.src = img_src_value = ctx.item.img;
     			img.alt = "";
-    			add_location(img, file$1, 170, 20, 5425);
+    			add_location(img, file$1, 173, 20, 5558);
     			a.href = a_href_value = ctx.item.link;
-    			add_location(a, file$1, 168, 18, 5351);
-    			add_location(label, file$1, 163, 16, 5155);
+    			add_location(a, file$1, 171, 18, 5484);
+    			add_location(label, file$1, 166, 16, 5288);
     			dispose = listen(input, "change", input_change_handler);
     		},
 
@@ -1151,7 +1151,7 @@ var app = (function () {
     	};
     }
 
-    // (196:12) {#each sites3lados as site}
+    // (199:12) {#each sites3lados as site}
     function create_each_block_1(ctx) {
     	var label, a, t_value = ctx.site.title.rendered, t, label_transition, current;
 
@@ -1161,8 +1161,8 @@ var app = (function () {
     			a = element("a");
     			t = text(t_value);
     			a.href = "#";
-    			add_location(a, file$1, 197, 16, 6587);
-    			add_location(label, file$1, 196, 14, 6546);
+    			add_location(a, file$1, 200, 16, 6720);
+    			add_location(label, file$1, 199, 14, 6679);
     		},
 
     		m: function mount(target, anchor) {
@@ -1204,30 +1204,45 @@ var app = (function () {
     	};
     }
 
-    // (202:12) {#each servidores as server}
+    // (205:12) {#each servidores as server}
     function create_each_block(ctx) {
-    	var label, a, t_value = ctx.server.name, t, label_transition, current;
+    	var label, img, img_src_value, img_alt_value, t0, a, t1_value = ctx.server.title, t1, label_transition, current;
 
     	return {
     		c: function create() {
     			label = element("label");
+    			img = element("img");
+    			t0 = space();
     			a = element("a");
-    			t = text(t_value);
+    			t1 = text(t1_value);
+    			img.src = img_src_value = ctx.server.thumbnailUrl;
+    			img.alt = img_alt_value = ctx.server.title;
+    			add_location(img, file$1, 206, 16, 6931);
     			a.href = "#";
-    			add_location(a, file$1, 203, 16, 6798);
-    			add_location(label, file$1, 202, 14, 6757);
+    			add_location(a, file$1, 207, 16, 6998);
+    			add_location(label, file$1, 205, 14, 6890);
     		},
 
     		m: function mount(target, anchor) {
     			insert(target, label, anchor);
+    			append(label, img);
+    			append(label, t0);
     			append(label, a);
-    			append(a, t);
+    			append(a, t1);
     			current = true;
     		},
 
     		p: function update(changed, ctx) {
-    			if ((!current || changed.servidores) && t_value !== (t_value = ctx.server.name)) {
-    				set_data(t, t_value);
+    			if ((!current || changed.servidores) && img_src_value !== (img_src_value = ctx.server.thumbnailUrl)) {
+    				img.src = img_src_value;
+    			}
+
+    			if ((!current || changed.servidores) && img_alt_value !== (img_alt_value = ctx.server.title)) {
+    				img.alt = img_alt_value;
+    			}
+
+    			if ((!current || changed.servidores) && t1_value !== (t1_value = ctx.server.title)) {
+    				set_data(t1, t1_value);
     			}
     		},
 
@@ -1554,166 +1569,166 @@ var app = (function () {
     			img0.src = "images/pdp.svg";
     			img0.width = "50px";
     			img0.alt = "";
-    			add_location(img0, file$1, 149, 6, 4781);
-    			add_location(div0, file$1, 148, 4, 4769);
+    			add_location(img0, file$1, 152, 6, 4914);
+    			add_location(div0, file$1, 151, 4, 4902);
     			div1.className = "sidebar esquerda";
-    			add_location(div1, file$1, 147, 2, 4734);
+    			add_location(div1, file$1, 150, 2, 4867);
     			a0.className = "uk-accordion-title";
     			a0.href = "#";
-    			add_location(a0, file$1, 159, 10, 4972);
+    			add_location(a0, file$1, 162, 10, 5105);
     			div2.className = "nested";
-    			add_location(div2, file$1, 161, 12, 5078);
+    			add_location(div2, file$1, 164, 12, 5211);
     			div3.className = "uk-accordion-content";
-    			add_location(div3, file$1, 160, 10, 5031);
+    			add_location(div3, file$1, 163, 10, 5164);
     			li0.className = "uk-open";
-    			add_location(li0, file$1, 158, 8, 4941);
+    			add_location(li0, file$1, 161, 8, 5074);
     			a1.className = "uk-accordion-title";
     			a1.href = "#";
-    			add_location(a1, file$1, 178, 10, 5598);
-    			add_location(h20, file$1, 180, 12, 5704);
+    			add_location(a1, file$1, 181, 10, 5731);
+    			add_location(h20, file$1, 183, 12, 5837);
     			input0.className = "uk-input";
     			attr(input0, "type", "text");
     			input0.placeholder = "Nome";
-    			add_location(input0, file$1, 183, 24, 5834);
+    			add_location(input0, file$1, 186, 24, 5967);
     			input1.className = "uk-input";
     			attr(input1, "type", "text");
     			input1.placeholder = "URL";
-    			add_location(input1, file$1, 184, 24, 5939);
+    			add_location(input1, file$1, 187, 24, 6072);
     			div4.className = "uk-margin";
-    			add_location(div4, file$1, 182, 20, 5786);
+    			add_location(div4, file$1, 185, 20, 5919);
     			option0.__value = "36";
     			option0.value = option0.__value;
-    			add_location(option0, file$1, 188, 28, 6169);
+    			add_location(option0, file$1, 191, 28, 6302);
     			option1.__value = "Contabo 8";
     			option1.value = option1.__value;
-    			add_location(option1, file$1, 189, 28, 6235);
+    			add_location(option1, file$1, 192, 28, 6368);
     			select.className = "uk-select";
-    			add_location(select, file$1, 187, 24, 6114);
+    			add_location(select, file$1, 190, 24, 6247);
     			div5.className = "uk-margin";
-    			add_location(div5, file$1, 186, 20, 6066);
+    			add_location(div5, file$1, 189, 20, 6199);
     			fieldset.className = "uk-fieldset";
-    			add_location(fieldset, file$1, 181, 16, 5735);
+    			add_location(fieldset, file$1, 184, 16, 5868);
     			attr(button, "uk-icon", "icon: plus-circle");
     			button.className = "uk-button uk-button-body uk-width-1-3";
-    			add_location(button, file$1, 193, 16, 6367);
-    			add_location(h21, file$1, 200, 12, 6682);
+    			add_location(button, file$1, 196, 16, 6500);
+    			add_location(h21, file$1, 203, 12, 6815);
     			div6.className = "uk-accordion-content";
-    			add_location(div6, file$1, 179, 10, 5657);
-    			add_location(li1, file$1, 177, 8, 5583);
+    			add_location(div6, file$1, 182, 10, 5790);
+    			add_location(li1, file$1, 180, 8, 5716);
     			attr(ul, "uk-accordion", "");
-    			add_location(ul, file$1, 157, 6, 4915);
+    			add_location(ul, file$1, 160, 6, 5048);
     			div7.className = "colunas nested";
-    			add_location(div7, file$1, 155, 4, 4879);
-    			add_location(h10, file$1, 212, 6, 6960);
+    			add_location(div7, file$1, 158, 4, 5012);
+    			add_location(h10, file$1, 216, 6, 7161);
     			img1.src = "images/icons/4chan.png";
-    			add_location(img1, file$1, 215, 8, 7044);
+    			add_location(img1, file$1, 219, 8, 7245);
     			a2.href = "https://boards.4chan.org/pol/";
-    			add_location(a2, file$1, 213, 6, 6981);
+    			add_location(a2, file$1, 217, 6, 7182);
     			img2.src = "images/icons/4chan.png";
-    			add_location(img2, file$1, 219, 8, 7159);
+    			add_location(img2, file$1, 223, 8, 7360);
     			a3.href = "https://boards.4chan.org/wg/";
-    			add_location(a3, file$1, 217, 6, 7098);
+    			add_location(a3, file$1, 221, 6, 7299);
     			img3.src = "images/icons/4chan.png";
-    			add_location(img3, file$1, 223, 8, 7274);
+    			add_location(img3, file$1, 227, 8, 7475);
     			a4.href = "https://boards.4chan.org/gd/";
-    			add_location(a4, file$1, 221, 6, 7213);
+    			add_location(a4, file$1, 225, 6, 7414);
     			a5.href = "https://app.asana.com/";
-    			add_location(a5, file$1, 225, 6, 7328);
-    			add_location(h22, file$1, 226, 6, 7377);
+    			add_location(a5, file$1, 229, 6, 7529);
+    			add_location(h22, file$1, 230, 6, 7578);
     			a6.href = "https://pxhere.com/pt/";
-    			add_location(a6, file$1, 227, 6, 7409);
+    			add_location(a6, file$1, 231, 6, 7610);
     			a7.href = "https://www.pexels.com/";
-    			add_location(a7, file$1, 228, 6, 7459);
+    			add_location(a7, file$1, 232, 6, 7660);
     			h23.className = "tracking-in-contract";
-    			add_location(h23, file$1, 229, 6, 7510);
+    			add_location(h23, file$1, 233, 6, 7711);
     			a8.href = "http://animista.net/play/background/ken-burns/kenburns-bottom-left";
-    			add_location(a8, file$1, 230, 6, 7558);
+    			add_location(a8, file$1, 234, 6, 7759);
     			a9.href = "https://loading.io/";
-    			add_location(a9, file$1, 234, 6, 7701);
+    			add_location(a9, file$1, 238, 6, 7902);
     			a10.href = "https://coolors.co/424964-1a1423-e26d5a-ffc857-1f2041";
-    			add_location(a10, file$1, 235, 6, 7752);
+    			add_location(a10, file$1, 239, 6, 7953);
     			a11.href = "https://bennettfeely.com/clippy/";
-    			add_location(a11, file$1, 238, 6, 7867);
+    			add_location(a11, file$1, 242, 6, 8068);
     			a12.href = "https://www.svgbackgrounds.com/";
-    			add_location(a12, file$1, 241, 6, 7968);
+    			add_location(a12, file$1, 245, 6, 8169);
     			a13.href = "http://alssndro.github.io/trianglify-background-generator/";
-    			add_location(a13, file$1, 242, 6, 8036);
+    			add_location(a13, file$1, 246, 6, 8237);
     			a14.href = "https://keyframes.app/editor/";
-    			add_location(a14, file$1, 245, 6, 8154);
-    			add_location(h24, file$1, 246, 6, 8218);
+    			add_location(a14, file$1, 249, 6, 8355);
+    			add_location(h24, file$1, 250, 6, 8419);
     			a15.href = "https://www.evernote.design/";
-    			add_location(a15, file$1, 247, 6, 8244);
+    			add_location(a15, file$1, 251, 6, 8445);
     			a16.href = "https://webframe.xyz/";
-    			add_location(a16, file$1, 248, 6, 8309);
+    			add_location(a16, file$1, 252, 6, 8510);
     			a17.href = "https://dribbble.com/fantasy";
-    			add_location(a17, file$1, 249, 6, 8360);
+    			add_location(a17, file$1, 253, 6, 8561);
     			a18.href = "https://dribbble.com/fantasy";
-    			add_location(a18, file$1, 250, 6, 8417);
+    			add_location(a18, file$1, 254, 6, 8618);
     			div8.className = "colunas";
-    			add_location(div8, file$1, 211, 4, 6932);
-    			add_location(h11, file$1, 253, 6, 8513);
+    			add_location(div8, file$1, 215, 4, 7133);
+    			add_location(h11, file$1, 257, 6, 8714);
     			h25.className = "tracking-in-contract";
-    			add_location(h25, file$1, 254, 6, 8533);
-    			add_location(b0, file$1, 257, 8, 8619);
-    			add_location(h30, file$1, 255, 6, 8588);
+    			add_location(h25, file$1, 258, 6, 8734);
+    			add_location(b0, file$1, 261, 8, 8820);
+    			add_location(h30, file$1, 259, 6, 8789);
     			a19.href = "http://contabo6.oncloud.net.br:10001/env/1a5/apps/stacks";
-    			add_location(a19, file$1, 260, 8, 8675);
+    			add_location(a19, file$1, 264, 8, 8876);
     			a20.href = "http://phpmyadmin6.3lados.com.br/";
-    			add_location(a20, file$1, 263, 8, 8782);
+    			add_location(a20, file$1, 267, 8, 8983);
     			div9.className = "nested";
-    			add_location(div9, file$1, 259, 6, 8646);
-    			add_location(b1, file$1, 267, 8, 8884);
-    			add_location(h31, file$1, 265, 6, 8853);
+    			add_location(div9, file$1, 263, 6, 8847);
+    			add_location(b1, file$1, 271, 8, 9085);
+    			add_location(h31, file$1, 269, 6, 9054);
     			a21.href = "http://contabo8.3lados.com.br:10001/";
-    			add_location(a21, file$1, 270, 8, 8940);
+    			add_location(a21, file$1, 274, 8, 9141);
     			a22.href = "http://phpmyadmin8.3lados.com.br/";
-    			add_location(a22, file$1, 271, 8, 9007);
+    			add_location(a22, file$1, 275, 8, 9208);
     			div10.className = "nested";
-    			add_location(div10, file$1, 269, 6, 8911);
-    			add_location(b2, file$1, 275, 8, 9109);
-    			add_location(h32, file$1, 273, 6, 9078);
+    			add_location(div10, file$1, 273, 6, 9112);
+    			add_location(b2, file$1, 279, 8, 9310);
+    			add_location(h32, file$1, 277, 6, 9279);
     			a23.href = "http://116.203.114.19:10001";
-    			add_location(a23, file$1, 278, 8, 9162);
+    			add_location(a23, file$1, 282, 8, 9363);
     			a24.href = "http://phpmyadminhetzner.3lados.com.br";
-    			add_location(a24, file$1, 279, 8, 9220);
+    			add_location(a24, file$1, 283, 8, 9421);
     			div11.className = "nested";
-    			add_location(div11, file$1, 277, 6, 9133);
-    			add_location(b3, file$1, 283, 8, 9328);
-    			add_location(h33, file$1, 281, 6, 9296);
+    			add_location(div11, file$1, 281, 6, 9334);
+    			add_location(b3, file$1, 287, 8, 9529);
+    			add_location(h33, file$1, 285, 6, 9497);
     			a25.href = "http://hetzner2.3lados.com.br:10001/";
-    			add_location(a25, file$1, 286, 8, 9381);
+    			add_location(a25, file$1, 290, 8, 9582);
     			a26.href = "http://pmahetzner2.3lados.com.br/";
-    			add_location(a26, file$1, 287, 8, 9448);
+    			add_location(a26, file$1, 291, 8, 9649);
     			div12.className = "nested";
-    			add_location(div12, file$1, 285, 6, 9352);
+    			add_location(div12, file$1, 289, 6, 9553);
     			h26.className = "tracking-in-contract";
-    			add_location(h26, file$1, 290, 6, 9520);
+    			add_location(h26, file$1, 294, 6, 9721);
     			a27.href = "https://github.com/RELATO";
-    			add_location(a27, file$1, 291, 6, 9571);
+    			add_location(a27, file$1, 295, 6, 9772);
     			h27.className = "tracking-in-contract";
-    			add_location(h27, file$1, 292, 6, 9631);
+    			add_location(h27, file$1, 296, 6, 9832);
     			a28.href = "https://powertic.com/pt-br/guia-para-iniciantes-em-mautic/";
-    			add_location(a28, file$1, 293, 6, 9682);
+    			add_location(a28, file$1, 297, 6, 9883);
     			a29.href = "https://luizeof.com.br/";
-    			add_location(a29, file$1, 296, 6, 9791);
+    			add_location(a29, file$1, 300, 6, 9992);
     			div13.className = "colunas";
-    			add_location(div13, file$1, 252, 4, 8485);
+    			add_location(div13, file$1, 256, 4, 8686);
     			div14.className = "centro";
-    			add_location(div14, file$1, 153, 2, 4853);
+    			add_location(div14, file$1, 156, 2, 4986);
     			set_style(div15, "background-color", "#424964");
-    			add_location(div15, file$1, 300, 4, 9893);
+    			add_location(div15, file$1, 304, 4, 10094);
     			set_style(div16, "background-color", "#1A1423");
-    			add_location(div16, file$1, 301, 4, 9949);
+    			add_location(div16, file$1, 305, 4, 10150);
     			set_style(div17, "background-color", "#E26D5A");
-    			add_location(div17, file$1, 302, 4, 10005);
+    			add_location(div17, file$1, 306, 4, 10206);
     			set_style(div18, "background-color", "#FFC857");
-    			add_location(div18, file$1, 303, 4, 10061);
+    			add_location(div18, file$1, 307, 4, 10262);
     			set_style(div19, "background-color", "#1F2041");
-    			add_location(div19, file$1, 304, 4, 10117);
+    			add_location(div19, file$1, 308, 4, 10318);
     			div20.className = "sidebar direita";
-    			add_location(div20, file$1, 299, 2, 9859);
+    			add_location(div20, file$1, 303, 2, 10060);
     			div21.className = "main";
-    			add_location(div21, file$1, 146, 0, 4713);
+    			add_location(div21, file$1, 149, 0, 4846);
 
     			dispose = [
     				listen(input0, "input", ctx.input0_input_handler),
@@ -2049,10 +2064,13 @@ var app = (function () {
           $$invalidate('sites3lados', sites3lados = await fetch(
             `http://`+ URL +`/wp-json/wp/v2/sites`
           ).then(r => r.json()));
+          // servidores = await fetch(
+          //   `http://`+ URL +`/wp-json/wp/v2/servidores`
+          // ).then(r => r.json());
           $$invalidate('servidores', servidores = await fetch(
-            `http://`+ URL +`/wp-json/wp/v2/servidores`
+            `https://jsonplaceholder.typicode.com/photos?_limit=20`
           ).then(r => r.json()));
-          console.log(sites3lados);
+          console.log(servidores);
         });
 
         function addSite () {
