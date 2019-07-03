@@ -5,6 +5,12 @@ var app = (function () {
 
     function noop() { }
     const identity = x => x;
+    function assign(tar, src) {
+        // @ts-ignore
+        for (const k in src)
+            tar[k] = src[k];
+        return tar;
+    }
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -24,6 +30,40 @@ var app = (function () {
     }
     function safe_not_equal(a, b) {
         return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
+    }
+    function validate_store(store, name) {
+        if (!store || typeof store.subscribe !== 'function') {
+            throw new Error(`'${name}' is not a store with a 'subscribe' method`);
+        }
+    }
+    function subscribe(component, store, callback) {
+        const unsub = store.subscribe(callback);
+        component.$$.on_destroy.push(unsub.unsubscribe
+            ? () => unsub.unsubscribe()
+            : unsub);
+    }
+    function create_slot(definition, ctx, fn) {
+        if (definition) {
+            const slot_ctx = get_slot_context(definition, ctx, fn);
+            return definition[0](slot_ctx);
+        }
+    }
+    function get_slot_context(definition, ctx, fn) {
+        return definition[1]
+            ? assign({}, assign(ctx.$$scope.ctx, definition[1](fn ? fn(ctx) : {})))
+            : ctx.$$scope.ctx;
+    }
+    function get_slot_changes(definition, ctx, changed, fn) {
+        return definition[1]
+            ? assign({}, assign(ctx.$$scope.changed || {}, definition[1](fn ? fn(changed) : {})))
+            : ctx.$$scope.changed || {};
+    }
+    function exclude_internal_props(props) {
+        const result = {};
+        for (const k in props)
+            if (k[0] !== '$')
+                result[k] = props[k];
+        return result;
     }
     const is_client = typeof window !== 'undefined';
     let now = is_client
@@ -78,11 +118,17 @@ var app = (function () {
     function element(name) {
         return document.createElement(name);
     }
+    function svg_element(name) {
+        return document.createElementNS('http://www.w3.org/2000/svg', name);
+    }
     function text(data) {
         return document.createTextNode(data);
     }
     function space() {
         return text(' ');
+    }
+    function empty() {
+        return text('');
     }
     function listen(node, event, handler, options) {
         node.addEventListener(event, handler, options);
@@ -94,8 +140,45 @@ var app = (function () {
         else
             node.setAttribute(attribute, value);
     }
+    function set_attributes(node, attributes) {
+        for (const key in attributes) {
+            if (key === 'style') {
+                node.style.cssText = attributes[key];
+            }
+            else if (key in node) {
+                node[key] = attributes[key];
+            }
+            else {
+                attr(node, key, attributes[key]);
+            }
+        }
+    }
     function children(element) {
         return Array.from(element.childNodes);
+    }
+    function claim_element(nodes, name, attributes, svg) {
+        for (let i = 0; i < nodes.length; i += 1) {
+            const node = nodes[i];
+            if (node.nodeName === name) {
+                for (let j = 0; j < node.attributes.length; j += 1) {
+                    const attribute = node.attributes[j];
+                    if (!attributes[attribute.name])
+                        node.removeAttribute(attribute.name);
+                }
+                return nodes.splice(i, 1)[0]; // TODO strip unwanted attributes
+            }
+        }
+        return svg ? svg_element(name) : element(name);
+    }
+    function claim_text(nodes, data) {
+        for (let i = 0; i < nodes.length; i += 1) {
+            const node = nodes[i];
+            if (node.nodeType === 3) {
+                node.data = data;
+                return nodes.splice(i, 1)[0];
+            }
+        }
+        return text(data);
     }
     function set_data(text, data) {
         data = '' + data;
@@ -104,6 +187,19 @@ var app = (function () {
     }
     function set_style(node, key, value) {
         node.style.setProperty(key, value);
+    }
+    function select_option(select, value) {
+        for (let i = 0; i < select.options.length; i += 1) {
+            const option = select.options[i];
+            if (option.__value === value) {
+                option.selected = true;
+                return;
+            }
+        }
+    }
+    function select_value(select) {
+        const selected_option = select.querySelector(':checked') || select.options[0];
+        return selected_option && selected_option.__value;
     }
     function custom_event(type, detail) {
         const e = document.createEvent('CustomEvent');
@@ -179,6 +275,9 @@ var app = (function () {
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
     }
+    function onDestroy(fn) {
+        get_current_component().$$.on_destroy.push(fn);
+    }
     function createEventDispatcher() {
         const component = current_component;
         return (type, detail) => {
@@ -192,6 +291,12 @@ var app = (function () {
                 });
             }
         };
+    }
+    function setContext(key, context) {
+        get_current_component().$$.context.set(key, context);
+    }
+    function getContext(key) {
+        return get_current_component().$$.context.get(key);
     }
 
     const dirty_components = [];
@@ -381,6 +486,40 @@ var app = (function () {
             }
         };
     }
+
+    function get_spread_update(levels, updates) {
+        const update = {};
+        const to_null_out = {};
+        const accounted_for = { $$scope: 1 };
+        let i = levels.length;
+        while (i--) {
+            const o = levels[i];
+            const n = updates[i];
+            if (n) {
+                for (const key in o) {
+                    if (!(key in n))
+                        to_null_out[key] = 1;
+                }
+                for (const key in n) {
+                    if (!accounted_for[key]) {
+                        update[key] = n[key];
+                        accounted_for[key] = 1;
+                    }
+                }
+                levels[i] = n;
+            }
+            else {
+                for (const key in o) {
+                    accounted_for[key] = 1;
+                }
+            }
+        }
+        for (const key in to_null_out) {
+            if (!(key in update))
+                update[key] = undefined;
+        }
+        return update;
+    }
     function mount_component(component, target, anchor) {
         const { fragment, on_mount, on_destroy, after_render } = component.$$;
         fragment.m(target, anchor);
@@ -505,6 +644,1357 @@ var app = (function () {
         }
     }
 
+    /**
+     * Creates a `Readable` store that allows reading by subscription.
+     * @param value initial value
+     * @param {StartStopNotifier}start start and stop notifications for subscriptions
+     */
+    function readable(value, start) {
+        return {
+            subscribe: writable(value, start).subscribe,
+        };
+    }
+    /**
+     * Create a `Writable` store that allows both updating and reading by subscription.
+     * @param {*=}value initial value
+     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     */
+    function writable(value, start = noop) {
+        let stop;
+        const subscribers = [];
+        function set(new_value) {
+            if (safe_not_equal(value, new_value)) {
+                value = new_value;
+                if (!stop) {
+                    return; // not ready
+                }
+                subscribers.forEach((s) => s[1]());
+                subscribers.forEach((s) => s[0](value));
+            }
+        }
+        function update(fn) {
+            set(fn(value));
+        }
+        function subscribe(run, invalidate = noop) {
+            const subscriber = [run, invalidate];
+            subscribers.push(subscriber);
+            if (subscribers.length === 1) {
+                stop = start(set) || noop;
+            }
+            run(value);
+            return () => {
+                const index = subscribers.indexOf(subscriber);
+                if (index !== -1) {
+                    subscribers.splice(index, 1);
+                }
+                if (subscribers.length === 0) {
+                    stop();
+                }
+            };
+        }
+        return { set, update, subscribe };
+    }
+    /**
+     * Derived value store by synchronizing one or more readable stores and
+     * applying an aggregation function over its input values.
+     * @param {Stores} stores input stores
+     * @param {function(Stores=, function(*)=):*}fn function callback that aggregates the values
+     * @param {*=}initial_value when used asynchronously
+     */
+    function derived(stores, fn, initial_value) {
+        const single = !Array.isArray(stores);
+        const stores_array = single
+            ? [stores]
+            : stores;
+        const auto = fn.length < 2;
+        const invalidators = [];
+        const store = readable(initial_value, (set) => {
+            let inited = false;
+            const values = [];
+            let pending = 0;
+            let cleanup = noop;
+            const sync = () => {
+                if (pending) {
+                    return;
+                }
+                cleanup();
+                const result = fn(single ? values[0] : values, set);
+                if (auto) {
+                    set(result);
+                }
+                else {
+                    cleanup = is_function(result) ? result : noop;
+                }
+            };
+            const unsubscribers = stores_array.map((store, i) => store.subscribe((value) => {
+                values[i] = value;
+                pending &= ~(1 << i);
+                if (inited) {
+                    sync();
+                }
+            }, () => {
+                run_all(invalidators);
+                pending |= (1 << i);
+            }));
+            inited = true;
+            sync();
+            return function stop() {
+                run_all(unsubscribers);
+                cleanup();
+            };
+        });
+        return {
+            subscribe(run, invalidate = noop) {
+                invalidators.push(invalidate);
+                const unsubscribe = store.subscribe(run, invalidate);
+                return () => {
+                    const index = invalidators.indexOf(invalidate);
+                    if (index !== -1) {
+                        invalidators.splice(index, 1);
+                    }
+                    unsubscribe();
+                };
+            }
+        };
+    }
+
+    const LOCATION = {};
+    const ROUTER = {};
+
+    /**
+     * Adapted from https://github.com/reach/router/blob/b60e6dd781d5d3a4bdaaf4de665649c0f6a7e78d/src/lib/history.js
+     *
+     * https://github.com/reach/router/blob/master/LICENSE
+     * */
+
+    function getLocation(source) {
+      return {
+        ...source.location,
+        state: source.history.state,
+        key: (source.history.state && source.history.state.key) || "initial"
+      };
+    }
+
+    function createHistory(source, options) {
+      const listeners = [];
+      let location = getLocation(source);
+
+      return {
+        get location() {
+          return location;
+        },
+
+        listen(listener) {
+          listeners.push(listener);
+
+          const popstateListener = () => {
+            location = getLocation(source);
+            listener({ location, action: "POP" });
+          };
+
+          source.addEventListener("popstate", popstateListener);
+
+          return () => {
+            source.removeEventListener("popstate", popstateListener);
+
+            const index = listeners.indexOf(listener);
+            listeners.splice(index, 1);
+          };
+        },
+
+        navigate(to, { state, replace = false } = {}) {
+          state = { ...state, key: Date.now() + "" };
+          // try...catch iOS Safari limits to 100 pushState calls
+          try {
+            if (replace) {
+              source.history.replaceState(state, null, to);
+            } else {
+              source.history.pushState(state, null, to);
+            }
+          } catch (e) {
+            source.location[replace ? "replace" : "assign"](to);
+          }
+
+          location = getLocation(source);
+          listeners.forEach(listener => listener({ location, action: "PUSH" }));
+        }
+      };
+    }
+
+    // Stores history entries in memory for testing or other platforms like Native
+    function createMemorySource(initialPathname = "/") {
+      let index = 0;
+      const stack = [{ pathname: initialPathname, search: "" }];
+      const states = [];
+
+      return {
+        get location() {
+          return stack[index];
+        },
+        addEventListener(name, fn) {},
+        removeEventListener(name, fn) {},
+        history: {
+          get entries() {
+            return stack;
+          },
+          get index() {
+            return index;
+          },
+          get state() {
+            return states[index];
+          },
+          pushState(state, _, uri) {
+            const [pathname, search = ""] = uri.split("?");
+            index++;
+            stack.push({ pathname, search });
+            states.push(state);
+          },
+          replaceState(state, _, uri) {
+            const [pathname, search = ""] = uri.split("?");
+            stack[index] = { pathname, search };
+            states[index] = state;
+          }
+        }
+      };
+    }
+
+    // Global history uses window.history as the source if available,
+    // otherwise a memory history
+    const canUseDOM = Boolean(
+      typeof window !== "undefined" &&
+        window.document &&
+        window.document.createElement
+    );
+    const globalHistory = createHistory(canUseDOM ? window : createMemorySource());
+    const { navigate } = globalHistory;
+
+    /**
+     * Adapted from https://github.com/reach/router/blob/b60e6dd781d5d3a4bdaaf4de665649c0f6a7e78d/src/lib/utils.js
+     *
+     * https://github.com/reach/router/blob/master/LICENSE
+     * */
+
+    const paramRe = /^:(.+)/;
+
+    const SEGMENT_POINTS = 4;
+    const STATIC_POINTS = 3;
+    const DYNAMIC_POINTS = 2;
+    const SPLAT_PENALTY = 1;
+    const ROOT_POINTS = 1;
+
+    /**
+     * Check if `string` starts with `search`
+     * @param {string} string
+     * @param {string} search
+     * @return {boolean}
+     */
+    function startsWith(string, search) {
+      return string.substr(0, search.length) === search;
+    }
+
+    /**
+     * Check if `segment` is a root segment
+     * @param {string} segment
+     * @return {boolean}
+     */
+    function isRootSegment(segment) {
+      return segment === "";
+    }
+
+    /**
+     * Check if `segment` is a dynamic segment
+     * @param {string} segment
+     * @return {boolean}
+     */
+    function isDynamic(segment) {
+      return paramRe.test(segment);
+    }
+
+    /**
+     * Check if `segment` is a splat
+     * @param {string} segment
+     * @return {boolean}
+     */
+    function isSplat(segment) {
+      return segment[0] === "*";
+    }
+
+    /**
+     * Split up the URI into segments delimited by `/`
+     * @param {string} uri
+     * @return {string[]}
+     */
+    function segmentize(uri) {
+      return (
+        uri
+          // Strip starting/ending `/`
+          .replace(/(^\/+|\/+$)/g, "")
+          .split("/")
+      );
+    }
+
+    /**
+     * Strip `str` of potential start and end `/`
+     * @param {string} str
+     * @return {string}
+     */
+    function stripSlashes(str) {
+      return str.replace(/(^\/+|\/+$)/g, "");
+    }
+
+    /**
+     * Score a route depending on how its individual segments look
+     * @param {object} route
+     * @param {number} index
+     * @return {object}
+     */
+    function rankRoute(route, index) {
+      const score = route.default
+        ? 0
+        : segmentize(route.path).reduce((score, segment) => {
+            score += SEGMENT_POINTS;
+
+            if (isRootSegment(segment)) {
+              score += ROOT_POINTS;
+            } else if (isDynamic(segment)) {
+              score += DYNAMIC_POINTS;
+            } else if (isSplat(segment)) {
+              score -= SEGMENT_POINTS + SPLAT_PENALTY;
+            } else {
+              score += STATIC_POINTS;
+            }
+
+            return score;
+          }, 0);
+
+      return { route, score, index };
+    }
+
+    /**
+     * Give a score to all routes and sort them on that
+     * @param {object[]} routes
+     * @return {object[]}
+     */
+    function rankRoutes(routes) {
+      return (
+        routes
+          .map(rankRoute)
+          // If two routes have the exact same score, we go by index instead
+          .sort((a, b) =>
+            a.score < b.score ? 1 : a.score > b.score ? -1 : a.index - b.index
+          )
+      );
+    }
+
+    /**
+     * Ranks and picks the best route to match. Each segment gets the highest
+     * amount of points, then the type of segment gets an additional amount of
+     * points where
+     *
+     *  static > dynamic > splat > root
+     *
+     * This way we don't have to worry about the order of our routes, let the
+     * computers do it.
+     *
+     * A route looks like this
+     *
+     *  { path, default, value }
+     *
+     * And a returned match looks like:
+     *
+     *  { route, params, uri }
+     *
+     * @param {object[]} routes
+     * @param {string} uri
+     * @return {?object}
+     */
+    function pick(routes, uri) {
+      let match;
+      let default_;
+
+      const [uriPathname] = uri.split("?");
+      const uriSegments = segmentize(uriPathname);
+      const isRootUri = uriSegments[0] === "";
+      const ranked = rankRoutes(routes);
+
+      for (let i = 0, l = ranked.length; i < l; i++) {
+        const route = ranked[i].route;
+        let missed = false;
+
+        if (route.default) {
+          default_ = {
+            route,
+            params: {},
+            uri
+          };
+          continue;
+        }
+
+        const routeSegments = segmentize(route.path);
+        const params = {};
+        const max = Math.max(uriSegments.length, routeSegments.length);
+        let index = 0;
+
+        for (; index < max; index++) {
+          const routeSegment = routeSegments[index];
+          const uriSegment = uriSegments[index];
+
+          if (routeSegment !== undefined && isSplat(routeSegment)) {
+            // Hit a splat, just grab the rest, and return a match
+            // uri:   /files/documents/work
+            // route: /files/* or /files/*splatname
+            const splatName = routeSegment === "*" ? "*" : routeSegment.slice(1);
+
+            params[splatName] = uriSegments
+              .slice(index)
+              .map(decodeURIComponent)
+              .join("/");
+            break;
+          }
+
+          if (uriSegment === undefined) {
+            // URI is shorter than the route, no match
+            // uri:   /users
+            // route: /users/:userId
+            missed = true;
+            break;
+          }
+
+          let dynamicMatch = paramRe.exec(routeSegment);
+
+          if (dynamicMatch && !isRootUri) {
+            const value = decodeURIComponent(uriSegment);
+            params[dynamicMatch[1]] = value;
+          } else if (routeSegment !== uriSegment) {
+            // Current segments don't match, not dynamic, not splat, so no match
+            // uri:   /users/123/settings
+            // route: /users/:id/profile
+            missed = true;
+            break;
+          }
+        }
+
+        if (!missed) {
+          match = {
+            route,
+            params,
+            uri: "/" + uriSegments.slice(0, index).join("/")
+          };
+          break;
+        }
+      }
+
+      return match || default_ || null;
+    }
+
+    /**
+     * Check if the `path` matches the `uri`.
+     * @param {string} path
+     * @param {string} uri
+     * @return {?object}
+     */
+    function match(route, uri) {
+      return pick([route], uri);
+    }
+
+    /**
+     * Add the query to the pathname if a query is given
+     * @param {string} pathname
+     * @param {string} [query]
+     * @return {string}
+     */
+    function addQuery(pathname, query) {
+      return pathname + (query ? `?${query}` : "");
+    }
+
+    /**
+     * Resolve URIs as though every path is a directory, no files. Relative URIs
+     * in the browser can feel awkward because not only can you be "in a directory",
+     * you can be "at a file", too. For example:
+     *
+     *  browserSpecResolve('foo', '/bar/') => /bar/foo
+     *  browserSpecResolve('foo', '/bar') => /foo
+     *
+     * But on the command line of a file system, it's not as complicated. You can't
+     * `cd` from a file, only directories. This way, links have to know less about
+     * their current path. To go deeper you can do this:
+     *
+     *  <Link to="deeper"/>
+     *  // instead of
+     *  <Link to=`{${props.uri}/deeper}`/>
+     *
+     * Just like `cd`, if you want to go deeper from the command line, you do this:
+     *
+     *  cd deeper
+     *  # not
+     *  cd $(pwd)/deeper
+     *
+     * By treating every path as a directory, linking to relative paths should
+     * require less contextual information and (fingers crossed) be more intuitive.
+     * @param {string} to
+     * @param {string} base
+     * @return {string}
+     */
+    function resolve(to, base) {
+      // /foo/bar, /baz/qux => /foo/bar
+      if (startsWith(to, "/")) {
+        return to;
+      }
+
+      const [toPathname, toQuery] = to.split("?");
+      const [basePathname] = base.split("?");
+      const toSegments = segmentize(toPathname);
+      const baseSegments = segmentize(basePathname);
+
+      // ?a=b, /users?b=c => /users?a=b
+      if (toSegments[0] === "") {
+        return addQuery(basePathname, toQuery);
+      }
+
+      // profile, /users/789 => /users/789/profile
+      if (!startsWith(toSegments[0], ".")) {
+        const pathname = baseSegments.concat(toSegments).join("/");
+
+        return addQuery((basePathname === "/" ? "" : "/") + pathname, toQuery);
+      }
+
+      // ./       , /users/123 => /users/123
+      // ../      , /users/123 => /users
+      // ../..    , /users/123 => /
+      // ../../one, /a/b/c/d   => /a/b/one
+      // .././one , /a/b/c/d   => /a/b/c/one
+      const allSegments = baseSegments.concat(toSegments);
+      const segments = [];
+
+      allSegments.forEach(segment => {
+        if (segment === "..") {
+          segments.pop();
+        } else if (segment !== ".") {
+          segments.push(segment);
+        }
+      });
+
+      return addQuery("/" + segments.join("/"), toQuery);
+    }
+
+    /**
+     * Combines the `basepath` and the `path` into one path.
+     * @param {string} basepath
+     * @param {string} path
+     */
+    function combinePaths(basepath, path) {
+      return `${stripSlashes(
+    path === "/" ? basepath : `${stripSlashes(basepath)}/${stripSlashes(path)}`
+  )}/`;
+    }
+
+    /**
+     * Decides whether a given `event` should result in a navigation or not.
+     * @param {object} event
+     */
+    function shouldNavigate(event) {
+      return (
+        !event.defaultPrevented &&
+        event.button === 0 &&
+        !(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey)
+      );
+    }
+
+    /* node_modules\svelte-routing\src\Router.svelte generated by Svelte v3.5.1 */
+
+    function create_fragment(ctx) {
+    	var current;
+
+    	const default_slot_1 = ctx.$$slots.default;
+    	const default_slot = create_slot(default_slot_1, ctx, null);
+
+    	return {
+    		c: function create() {
+    			if (default_slot) default_slot.c();
+    		},
+
+    		l: function claim(nodes) {
+    			if (default_slot) default_slot.l(nodes);
+    		},
+
+    		m: function mount(target, anchor) {
+    			if (default_slot) {
+    				default_slot.m(target, anchor);
+    			}
+
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if (default_slot && default_slot.p && changed.$$scope) {
+    				default_slot.p(get_slot_changes(default_slot_1, ctx, changed, null), get_slot_context(default_slot_1, ctx, null));
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (default_slot && default_slot.i) default_slot.i(local);
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (default_slot && default_slot.o) default_slot.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (default_slot) default_slot.d(detaching);
+    		}
+    	};
+    }
+
+    function instance($$self, $$props, $$invalidate) {
+    	let $base, $location, $routes;
+
+    	
+
+      let { basepath = "/", url = null } = $$props;
+
+      const locationContext = getContext(LOCATION);
+      const routerContext = getContext(ROUTER);
+
+      const routes = writable([]); validate_store(routes, 'routes'); subscribe($$self, routes, $$value => { $routes = $$value; $$invalidate('$routes', $routes); });
+      const activeRoute = writable(null);
+      let hasActiveRoute = false; // Used in SSR to synchronously set that a Route is active.
+
+      // If locationContext is not set, this is the topmost Router in the tree.
+      // If the `url` prop is given we force the location to it.
+      const location =
+        locationContext ||
+        writable(url ? { pathname: url } : globalHistory.location); validate_store(location, 'location'); subscribe($$self, location, $$value => { $location = $$value; $$invalidate('$location', $location); });
+
+      // If routerContext is set, the routerBase of the parent Router
+      // will be the base for this Router's descendants.
+      // If routerContext is not set, the path and resolved uri will both
+      // have the value of the basepath prop.
+      const base = routerContext
+        ? routerContext.routerBase
+        : writable({
+            path: basepath,
+            uri: basepath
+          }); validate_store(base, 'base'); subscribe($$self, base, $$value => { $base = $$value; $$invalidate('$base', $base); });
+
+      const routerBase = derived([base, activeRoute], ([base, activeRoute]) => {
+        // If there is no activeRoute, the routerBase will be identical to the base.
+        if (activeRoute === null) {
+          return base;
+        }
+
+        const { path: basepath } = base;
+        const { route, uri } = activeRoute;
+        // Remove the potential /* or /*splatname from
+        // the end of the child Routes relative paths.
+        const path = route.default ? basepath : route.path.replace(/\*.*$/, "");
+
+        return { path, uri };
+      });
+
+      function registerRoute(route) {
+        const { path: basepath } = $base;
+        let { path } = route;
+
+        // We store the original path in the _path property so we can reuse
+        // it when the basepath changes. The only thing that matters is that
+        // the route reference is intact, so mutation is fine.
+        route._path = path;
+        route.path = combinePaths(basepath, path);
+
+        if (typeof window === "undefined") {
+          // In SSR we should set the activeRoute immediately if it is a match.
+          // If there are more Routes being registered after a match is found,
+          // we just skip them.
+          if (hasActiveRoute) {
+            return;
+          }
+
+          const matchingRoute = match(route, $location.pathname);
+          if (matchingRoute) {
+            activeRoute.set(matchingRoute);
+            hasActiveRoute = true;
+          }
+        } else {
+          routes.update(rs => {
+            rs.push(route);
+            return rs;
+          });
+        }
+      }
+
+      function unregisterRoute(route) {
+        routes.update(rs => {
+          const index = rs.indexOf(route);
+          rs.splice(index, 1);
+          return rs;
+        });
+      }
+
+      if (!locationContext) {
+        // The topmost Router in the tree is responsible for updating
+        // the location store and supplying it through context.
+        onMount(() => {
+          const unlisten = globalHistory.listen(history => {
+            location.set(history.location);
+          });
+
+          return unlisten;
+        });
+
+        setContext(LOCATION, location);
+      }
+
+      setContext(ROUTER, {
+        activeRoute,
+        base,
+        routerBase,
+        registerRoute,
+        unregisterRoute
+      });
+
+    	const writable_props = ['basepath', 'url'];
+    	Object.keys($$props).forEach(key => {
+    		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Router> was created with unknown prop '${key}'`);
+    	});
+
+    	let { $$slots = {}, $$scope } = $$props;
+
+    	$$self.$set = $$props => {
+    		if ('basepath' in $$props) $$invalidate('basepath', basepath = $$props.basepath);
+    		if ('url' in $$props) $$invalidate('url', url = $$props.url);
+    		if ('$$scope' in $$props) $$invalidate('$$scope', $$scope = $$props.$$scope);
+    	};
+
+    	$$self.$$.update = ($$dirty = { $base: 1, $routes: 1, $location: 1 }) => {
+    		if ($$dirty.$base) { {
+            const { path: basepath } = $base;
+            routes.update(rs => {
+              rs.forEach(r => (r.path = combinePaths(basepath, r._path)));
+              return rs;
+            });
+          } }
+    		if ($$dirty.$routes || $$dirty.$location) { {
+            const bestMatch = pick($routes, $location.pathname);
+            activeRoute.set(bestMatch);
+          } }
+    	};
+
+    	return {
+    		basepath,
+    		url,
+    		routes,
+    		location,
+    		base,
+    		$$slots,
+    		$$scope
+    	};
+    }
+
+    class Router extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance, create_fragment, safe_not_equal, ["basepath", "url"]);
+    	}
+
+    	get basepath() {
+    		throw new Error("<Router>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set basepath(value) {
+    		throw new Error("<Router>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get url() {
+    		throw new Error("<Router>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set url(value) {
+    		throw new Error("<Router>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* node_modules\svelte-routing\src\Route.svelte generated by Svelte v3.5.1 */
+
+    // (39:0) {#if $activeRoute !== null && $activeRoute.route === route}
+    function create_if_block(ctx) {
+    	var current_block_type_index, if_block, if_block_anchor, current;
+
+    	var if_block_creators = [
+    		create_if_block_1,
+    		create_else_block
+    	];
+
+    	var if_blocks = [];
+
+    	function select_block_type(ctx) {
+    		if (ctx.component !== null) return 0;
+    		return 1;
+    	}
+
+    	current_block_type_index = select_block_type(ctx);
+    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+
+    	return {
+    		c: function create() {
+    			if_block.c();
+    			if_block_anchor = empty();
+    		},
+
+    		l: function claim(nodes) {
+    			if_block.l(nodes);
+    			if_block_anchor = empty();
+    		},
+
+    		m: function mount(target, anchor) {
+    			if_blocks[current_block_type_index].m(target, anchor);
+    			insert(target, if_block_anchor, anchor);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			var previous_block_index = current_block_type_index;
+    			current_block_type_index = select_block_type(ctx);
+    			if (current_block_type_index === previous_block_index) {
+    				if_blocks[current_block_type_index].p(changed, ctx);
+    			} else {
+    				group_outros();
+    				on_outro(() => {
+    					if_blocks[previous_block_index].d(1);
+    					if_blocks[previous_block_index] = null;
+    				});
+    				if_block.o(1);
+    				check_outros();
+
+    				if_block = if_blocks[current_block_type_index];
+    				if (!if_block) {
+    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    					if_block.c();
+    				}
+    				if_block.i(1);
+    				if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (if_block) if_block.i();
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (if_block) if_block.o();
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if_blocks[current_block_type_index].d(detaching);
+
+    			if (detaching) {
+    				detach(if_block_anchor);
+    			}
+    		}
+    	};
+    }
+
+    // (42:2) {:else}
+    function create_else_block(ctx) {
+    	var current;
+
+    	const default_slot_1 = ctx.$$slots.default;
+    	const default_slot = create_slot(default_slot_1, ctx, null);
+
+    	return {
+    		c: function create() {
+    			if (default_slot) default_slot.c();
+    		},
+
+    		l: function claim(nodes) {
+    			if (default_slot) default_slot.l(nodes);
+    		},
+
+    		m: function mount(target, anchor) {
+    			if (default_slot) {
+    				default_slot.m(target, anchor);
+    			}
+
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if (default_slot && default_slot.p && changed.$$scope) {
+    				default_slot.p(get_slot_changes(default_slot_1, ctx, changed, null), get_slot_context(default_slot_1, ctx, null));
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (default_slot && default_slot.i) default_slot.i(local);
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (default_slot && default_slot.o) default_slot.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (default_slot) default_slot.d(detaching);
+    		}
+    	};
+    }
+
+    // (40:2) {#if component !== null}
+    function create_if_block_1(ctx) {
+    	var switch_instance_anchor, current;
+
+    	var switch_instance_spread_levels = [
+    		ctx.routeParams,
+    		ctx.routeProps
+    	];
+
+    	var switch_value = ctx.component;
+
+    	function switch_props(ctx) {
+    		let switch_instance_props = {};
+    		for (var i = 0; i < switch_instance_spread_levels.length; i += 1) {
+    			switch_instance_props = assign(switch_instance_props, switch_instance_spread_levels[i]);
+    		}
+    		return {
+    			props: switch_instance_props,
+    			$$inline: true
+    		};
+    	}
+
+    	if (switch_value) {
+    		var switch_instance = new switch_value(switch_props());
+    	}
+
+    	return {
+    		c: function create() {
+    			if (switch_instance) switch_instance.$$.fragment.c();
+    			switch_instance_anchor = empty();
+    		},
+
+    		l: function claim(nodes) {
+    			if (switch_instance) switch_instance.$$.fragment.l(nodes);
+    			switch_instance_anchor = empty();
+    		},
+
+    		m: function mount(target, anchor) {
+    			if (switch_instance) {
+    				mount_component(switch_instance, target, anchor);
+    			}
+
+    			insert(target, switch_instance_anchor, anchor);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			var switch_instance_changes = (changed.routeParams || changed.routeProps) ? get_spread_update(switch_instance_spread_levels, [
+    				(changed.routeParams) && ctx.routeParams,
+    				(changed.routeProps) && ctx.routeProps
+    			]) : {};
+
+    			if (switch_value !== (switch_value = ctx.component)) {
+    				if (switch_instance) {
+    					group_outros();
+    					const old_component = switch_instance;
+    					on_outro(() => {
+    						old_component.$destroy();
+    					});
+    					old_component.$$.fragment.o(1);
+    					check_outros();
+    				}
+
+    				if (switch_value) {
+    					switch_instance = new switch_value(switch_props());
+
+    					switch_instance.$$.fragment.c();
+    					switch_instance.$$.fragment.i(1);
+    					mount_component(switch_instance, switch_instance_anchor.parentNode, switch_instance_anchor);
+    				} else {
+    					switch_instance = null;
+    				}
+    			}
+
+    			else if (switch_value) {
+    				switch_instance.$set(switch_instance_changes);
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (switch_instance) switch_instance.$$.fragment.i(local);
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (switch_instance) switch_instance.$$.fragment.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(switch_instance_anchor);
+    			}
+
+    			if (switch_instance) switch_instance.$destroy(detaching);
+    		}
+    	};
+    }
+
+    function create_fragment$1(ctx) {
+    	var if_block_anchor, current;
+
+    	var if_block = (ctx.$activeRoute !== null && ctx.$activeRoute.route === ctx.route) && create_if_block(ctx);
+
+    	return {
+    		c: function create() {
+    			if (if_block) if_block.c();
+    			if_block_anchor = empty();
+    		},
+
+    		l: function claim(nodes) {
+    			if (if_block) if_block.l(nodes);
+    			if_block_anchor = empty();
+    		},
+
+    		m: function mount(target, anchor) {
+    			if (if_block) if_block.m(target, anchor);
+    			insert(target, if_block_anchor, anchor);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if (ctx.$activeRoute !== null && ctx.$activeRoute.route === ctx.route) {
+    				if (if_block) {
+    					if_block.p(changed, ctx);
+    					if_block.i(1);
+    				} else {
+    					if_block = create_if_block(ctx);
+    					if_block.c();
+    					if_block.i(1);
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+    				on_outro(() => {
+    					if_block.d(1);
+    					if_block = null;
+    				});
+
+    				if_block.o(1);
+    				check_outros();
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (if_block) if_block.i();
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (if_block) if_block.o();
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (if_block) if_block.d(detaching);
+
+    			if (detaching) {
+    				detach(if_block_anchor);
+    			}
+    		}
+    	};
+    }
+
+    function instance$1($$self, $$props, $$invalidate) {
+    	let $activeRoute;
+
+    	
+
+      let { path = "", component = null } = $$props;
+
+      const { registerRoute, unregisterRoute, activeRoute } = getContext(ROUTER); validate_store(activeRoute, 'activeRoute'); subscribe($$self, activeRoute, $$value => { $activeRoute = $$value; $$invalidate('$activeRoute', $activeRoute); });
+
+      const route = {
+        path,
+        // If no path prop is given, this Route will act as the default Route
+        // that is rendered if no other Route in the Router is a match.
+        default: path === ""
+      };
+      let routeParams = {};
+      let routeProps = {};
+
+      registerRoute(route);
+
+      // There is no need to unregister Routes in SSR since it will all be
+      // thrown away anyway.
+      if (typeof window !== "undefined") {
+        onDestroy(() => {
+          unregisterRoute(route);
+        });
+      }
+
+    	let { $$slots = {}, $$scope } = $$props;
+
+    	$$self.$set = $$new_props => {
+    		$$invalidate('$$props', $$props = assign(assign({}, $$props), $$new_props));
+    		if ('path' in $$props) $$invalidate('path', path = $$props.path);
+    		if ('component' in $$props) $$invalidate('component', component = $$props.component);
+    		if ('$$scope' in $$new_props) $$invalidate('$$scope', $$scope = $$new_props.$$scope);
+    	};
+
+    	$$self.$$.update = ($$dirty = { $activeRoute: 1, $$props: 1 }) => {
+    		if ($$dirty.$activeRoute) { if ($activeRoute && $activeRoute.route === route) {
+            $$invalidate('routeParams', routeParams = $activeRoute.params);
+          } }
+    		{
+            const { path, component, ...rest } = $$props;
+            $$invalidate('routeProps', routeProps = rest);
+          }
+    	};
+
+    	return {
+    		path,
+    		component,
+    		activeRoute,
+    		route,
+    		routeParams,
+    		routeProps,
+    		$activeRoute,
+    		$$props: $$props = exclude_internal_props($$props),
+    		$$slots,
+    		$$scope
+    	};
+    }
+
+    class Route extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$1, create_fragment$1, safe_not_equal, ["path", "component"]);
+    	}
+
+    	get path() {
+    		throw new Error("<Route>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set path(value) {
+    		throw new Error("<Route>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get component() {
+    		throw new Error("<Route>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set component(value) {
+    		throw new Error("<Route>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* node_modules\svelte-routing\src\Link.svelte generated by Svelte v3.5.1 */
+
+    const file = "node_modules\\svelte-routing\\src\\Link.svelte";
+
+    function create_fragment$2(ctx) {
+    	var a, current, dispose;
+
+    	const default_slot_1 = ctx.$$slots.default;
+    	const default_slot = create_slot(default_slot_1, ctx, null);
+
+    	var a_levels = [
+    		{ href: ctx.href },
+    		{ "aria-current": ctx.ariaCurrent },
+    		ctx.props
+    	];
+
+    	var a_data = {};
+    	for (var i = 0; i < a_levels.length; i += 1) {
+    		a_data = assign(a_data, a_levels[i]);
+    	}
+
+    	return {
+    		c: function create() {
+    			a = element("a");
+
+    			if (default_slot) default_slot.c();
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			a = claim_element(nodes, "A", { href: true, "aria-current": true }, false);
+    			var a_nodes = children(a);
+
+    			if (default_slot) default_slot.l(a_nodes);
+    			a_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			set_attributes(a, a_data);
+    			add_location(a, file, 40, 0, 1249);
+    			dispose = listen(a, "click", ctx.onClick);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, a, anchor);
+
+    			if (default_slot) {
+    				default_slot.m(a, null);
+    			}
+
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if (default_slot && default_slot.p && changed.$$scope) {
+    				default_slot.p(get_slot_changes(default_slot_1, ctx, changed, null), get_slot_context(default_slot_1, ctx, null));
+    			}
+
+    			set_attributes(a, get_spread_update(a_levels, [
+    				(changed.href) && { href: ctx.href },
+    				(changed.ariaCurrent) && { "aria-current": ctx.ariaCurrent },
+    				(changed.props) && ctx.props
+    			]));
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (default_slot && default_slot.i) default_slot.i(local);
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (default_slot && default_slot.o) default_slot.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(a);
+    			}
+
+    			if (default_slot) default_slot.d(detaching);
+    			dispose();
+    		}
+    	};
+    }
+
+    function instance$2($$self, $$props, $$invalidate) {
+    	let $base, $location;
+
+    	
+
+      let { to = "#", replace = false, state = {}, getProps = () => ({}) } = $$props;
+
+      const { base } = getContext(ROUTER); validate_store(base, 'base'); subscribe($$self, base, $$value => { $base = $$value; $$invalidate('$base', $base); });
+      const location = getContext(LOCATION); validate_store(location, 'location'); subscribe($$self, location, $$value => { $location = $$value; $$invalidate('$location', $location); });
+      const dispatch = createEventDispatcher();
+
+      let href, isPartiallyCurrent, isCurrent, props;
+
+      function onClick(event) {
+        dispatch("click", event);
+
+        if (shouldNavigate(event)) {
+          event.preventDefault();
+          // Don't push another entry to the history stack when the user
+          // clicks on a Link to the page they are currently on.
+          const shouldReplace = $location.pathname === href || replace;
+          navigate(href, { state, replace: shouldReplace });
+        }
+      }
+
+    	const writable_props = ['to', 'replace', 'state', 'getProps'];
+    	Object.keys($$props).forEach(key => {
+    		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Link> was created with unknown prop '${key}'`);
+    	});
+
+    	let { $$slots = {}, $$scope } = $$props;
+
+    	$$self.$set = $$props => {
+    		if ('to' in $$props) $$invalidate('to', to = $$props.to);
+    		if ('replace' in $$props) $$invalidate('replace', replace = $$props.replace);
+    		if ('state' in $$props) $$invalidate('state', state = $$props.state);
+    		if ('getProps' in $$props) $$invalidate('getProps', getProps = $$props.getProps);
+    		if ('$$scope' in $$props) $$invalidate('$$scope', $$scope = $$props.$$scope);
+    	};
+
+    	let ariaCurrent;
+
+    	$$self.$$.update = ($$dirty = { to: 1, $base: 1, $location: 1, href: 1, isCurrent: 1, getProps: 1, isPartiallyCurrent: 1 }) => {
+    		if ($$dirty.to || $$dirty.$base) { $$invalidate('href', href = to === "/" ? $base.uri : resolve(to, $base.uri)); }
+    		if ($$dirty.$location || $$dirty.href) { $$invalidate('isPartiallyCurrent', isPartiallyCurrent = startsWith($location.pathname, href)); }
+    		if ($$dirty.href || $$dirty.$location) { $$invalidate('isCurrent', isCurrent = href === $location.pathname); }
+    		if ($$dirty.isCurrent) { $$invalidate('ariaCurrent', ariaCurrent = isCurrent ? "page" : undefined); }
+    		if ($$dirty.getProps || $$dirty.$location || $$dirty.href || $$dirty.isPartiallyCurrent || $$dirty.isCurrent) { $$invalidate('props', props = getProps({
+            location: $location,
+            href,
+            isPartiallyCurrent,
+            isCurrent
+          })); }
+    	};
+
+    	return {
+    		to,
+    		replace,
+    		state,
+    		getProps,
+    		base,
+    		location,
+    		href,
+    		props,
+    		onClick,
+    		ariaCurrent,
+    		$$slots,
+    		$$scope
+    	};
+    }
+
+    class Link extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$2, create_fragment$2, safe_not_equal, ["to", "replace", "state", "getProps"]);
+    	}
+
+    	get to() {
+    		throw new Error("<Link>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set to(value) {
+    		throw new Error("<Link>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get replace() {
+    		throw new Error("<Link>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set replace(value) {
+    		throw new Error("<Link>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get state() {
+    		throw new Error("<Link>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set state(value) {
+    		throw new Error("<Link>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get getProps() {
+    		throw new Error("<Link>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set getProps(value) {
+    		throw new Error("<Link>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
     function cubicOut(t) {
         const f = t - 1.0;
         return f * f * f + 1.0;
@@ -538,191 +2028,204 @@ var app = (function () {
 
     /* src\Editor.svelte generated by Svelte v3.5.1 */
 
-    const file = "src\\Editor.svelte";
+    const file$1 = "src\\Editor.svelte";
 
-    // (41:0) {#if mostrar}
-    function create_if_block(ctx) {
-    	var div7, ul, li0, a0, t1, div1, div0, span0, t2, input0, t3, input1, t4, li1, a1, t6, div3, div2, span1, t7, input2, t8, li2, a2, t10, div5, div4, span2, t11, input3, t12, div6, button, t14, div7_transition, current, dispose;
+    // (49:0) {#if mostrar}
+    function create_if_block$1(ctx) {
+    	var div5, div4, div0, span0, t0, input0, t1, div1, span1, t2, input1, t3, div2, span2, t4, input2, t5, div3, button, t6, t7, div5_transition, current, dispose;
 
-    	var if_block = (ctx.selecionado) && create_if_block_1(ctx);
+    	var if_block = (ctx.selecionado) && create_if_block_1$1(ctx);
 
     	return {
     		c: function create() {
-    			div7 = element("div");
-    			ul = element("ul");
-    			li0 = element("li");
-    			a0 = element("a");
-    			a0.textContent = "Nome";
-    			t1 = space();
-    			div1 = element("div");
-    			div0 = element("div");
-    			span0 = element("span");
-    			t2 = space();
-    			input0 = element("input");
-    			t3 = space();
-    			input1 = element("input");
-    			t4 = space();
-    			li1 = element("li");
-    			a1 = element("a");
-    			a1.textContent = "URL";
-    			t6 = space();
-    			div3 = element("div");
-    			div2 = element("div");
-    			span1 = element("span");
-    			t7 = space();
-    			input2 = element("input");
-    			t8 = space();
-    			li2 = element("li");
-    			a2 = element("a");
-    			a2.textContent = "Link";
-    			t10 = space();
     			div5 = element("div");
     			div4 = element("div");
+    			div0 = element("div");
+    			span0 = element("span");
+    			t0 = space();
+    			input0 = element("input");
+    			t1 = space();
+    			div1 = element("div");
+    			span1 = element("span");
+    			t2 = space();
+    			input1 = element("input");
+    			t3 = space();
+    			div2 = element("div");
     			span2 = element("span");
-    			t11 = space();
-    			input3 = element("input");
-    			t12 = space();
-    			div6 = element("div");
+    			t4 = space();
+    			input2 = element("input");
+    			t5 = space();
+    			div3 = element("div");
     			button = element("button");
-    			button.textContent = "Adicionar";
-    			t14 = space();
+    			t6 = text("Adicionar");
+    			t7 = space();
     			if (if_block) if_block.c();
-    			a0.className = "uk-accordion-title";
-    			a0.href = "#";
-    			add_location(a0, file, 45, 16, 1181);
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			div5 = claim_element(nodes, "DIV", { class: true }, false);
+    			var div5_nodes = children(div5);
+
+    			div4 = claim_element(div5_nodes, "DIV", { class: true }, false);
+    			var div4_nodes = children(div4);
+
+    			div0 = claim_element(div4_nodes, "DIV", { class: true }, false);
+    			var div0_nodes = children(div0);
+
+    			span0 = claim_element(div0_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span0_nodes = children(span0);
+
+    			span0_nodes.forEach(detach);
+    			t0 = claim_text(div0_nodes, "\r\n                ");
+
+    			input0 = claim_element(div0_nodes, "INPUT", { class: true, type: true }, false);
+    			var input0_nodes = children(input0);
+
+    			input0_nodes.forEach(detach);
+    			div0_nodes.forEach(detach);
+    			t1 = claim_text(div4_nodes, "\r\n            ");
+
+    			div1 = claim_element(div4_nodes, "DIV", { class: true }, false);
+    			var div1_nodes = children(div1);
+
+    			span1 = claim_element(div1_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span1_nodes = children(span1);
+
+    			span1_nodes.forEach(detach);
+    			t2 = claim_text(div1_nodes, "\r\n                ");
+
+    			input1 = claim_element(div1_nodes, "INPUT", { class: true, type: true }, false);
+    			var input1_nodes = children(input1);
+
+    			input1_nodes.forEach(detach);
+    			div1_nodes.forEach(detach);
+    			t3 = claim_text(div4_nodes, "\r\n            ");
+
+    			div2 = claim_element(div4_nodes, "DIV", { class: true }, false);
+    			var div2_nodes = children(div2);
+
+    			span2 = claim_element(div2_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span2_nodes = children(span2);
+
+    			span2_nodes.forEach(detach);
+    			t4 = claim_text(div2_nodes, "\r\n                ");
+
+    			input2 = claim_element(div2_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input2_nodes = children(input2);
+
+    			input2_nodes.forEach(detach);
+    			div2_nodes.forEach(detach);
+    			t5 = claim_text(div4_nodes, "\r\n\r\n            ");
+
+    			div3 = claim_element(div4_nodes, "DIV", { class: true, "uk-grid": true }, false);
+    			var div3_nodes = children(div3);
+
+    			button = claim_element(div3_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button_nodes = children(button);
+
+    			t6 = claim_text(button_nodes, "Adicionar");
+    			button_nodes.forEach(detach);
+    			t7 = claim_text(div3_nodes, "            \r\n                ");
+    			if (if_block) if_block.l(div3_nodes);
+    			div3_nodes.forEach(detach);
+    			div4_nodes.forEach(detach);
+    			div5_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
     			span0.className = "uk-form-icon";
     			attr(span0, "uk-icon", "icon: comment");
-    			add_location(span0, file, 48, 24, 1351);
-    			input0.className = "uk-input uk-width-2-3";
+    			add_location(span0, file$1, 53, 16, 1368);
+    			input0.className = "uk-input uk-width-1-1";
     			attr(input0, "type", "text");
-    			input0.placeholder = "nome";
-    			add_location(input0, file, 49, 24, 1435);
-    			input1.className = "uk-input uk-width-1-4";
-    			attr(input1, "type", "text");
-    			input1.placeholder = "";
-    			input1.disabled = true;
-    			add_location(input1, file, 50, 24, 1550);
-    			div0.className = "uk-inline";
-    			add_location(div0, file, 47, 20, 1302);
-    			div1.className = "uk-accordion-content";
-    			add_location(div1, file, 46, 16, 1246);
-    			li0.className = "uk-open";
-    			add_location(li0, file, 44, 12, 1143);
-    			a1.className = "uk-accordion-title";
-    			a1.href = "#";
-    			add_location(a1, file, 55, 16, 1748);
+    			add_location(input0, file$1, 54, 16, 1444);
+    			div0.className = "uk-inline linha svelte-1vfdoss";
+    			add_location(div0, file$1, 52, 12, 1321);
     			span1.className = "uk-form-icon";
     			attr(span1, "uk-icon", "icon: link");
-    			add_location(span1, file, 58, 24, 1917);
-    			input2.className = "uk-input uk-width-1-1";
-    			attr(input2, "type", "text");
-    			input2.placeholder = "url do link";
-    			add_location(input2, file, 59, 24, 1998);
-    			div2.className = "uk-inline";
-    			add_location(div2, file, 57, 20, 1868);
-    			div3.className = "uk-accordion-content";
-    			add_location(div3, file, 56, 16, 1812);
-    			add_location(li1, file, 54, 12, 1726);
-    			a2.className = "uk-accordion-title";
-    			a2.href = "#";
-    			add_location(a2, file, 64, 16, 2201);
+    			add_location(span1, file$1, 58, 16, 1713);
+    			input1.className = "uk-input uk-width-1-1";
+    			attr(input1, "type", "text");
+    			add_location(input1, file$1, 59, 16, 1786);
+    			div1.className = "uk-inline linha svelte-1vfdoss";
+    			add_location(div1, file$1, 57, 12, 1666);
     			span2.className = "uk-form-icon";
     			attr(span2, "uk-icon", "icon: link");
-    			add_location(span2, file, 67, 24, 2371);
-    			input3.className = "uk-input uk-width-1-1";
-    			attr(input3, "type", "text");
-    			input3.placeholder = "url da imagem";
-    			add_location(input3, file, 68, 24, 2452);
-    			div4.className = "uk-inline";
-    			add_location(div4, file, 66, 20, 2322);
-    			div5.className = "uk-accordion-content";
-    			add_location(div5, file, 65, 16, 2266);
-    			add_location(li2, file, 63, 12, 2179);
-    			attr(ul, "uk-accordion", "");
-    			ul.className = "svelte-33u3kr";
-    			add_location(ul, file, 43, 8, 1112);
+    			add_location(span2, file$1, 62, 16, 1937);
+    			input2.className = "uk-input uk-width-1-1";
+    			attr(input2, "type", "text");
+    			input2.placeholder = "url da imagem";
+    			add_location(input2, file$1, 63, 16, 2010);
+    			div2.className = "uk-inline linha svelte-1vfdoss";
+    			add_location(div2, file$1, 61, 12, 1890);
     			attr(button, "uk-icon", "icon: plus-circle");
-    			button.className = "uk-button uk-button-body uk-width-1-3";
-    			add_location(button, file, 75, 12, 2748);
-    			div6.className = "uk-grid-small uk-child-width-expand@s uk-text-center uk-margin svelte-33u3kr";
-    			attr(div6, "uk-grid", "");
-    			add_location(div6, file, 74, 8, 2650);
-    			div7.className = "uk-card uk-card-primary uk-padding svelte-33u3kr";
-    			add_location(div7, file, 41, 4, 1034);
+    			button.className = "uk-button uk-button-default uk-width-1-1";
+    			add_location(button, file$1, 67, 16, 2248);
+    			div3.className = "uk-grid-small uk-child-width-expand@s uk-text-center uk-margin";
+    			attr(div3, "uk-grid", "");
+    			add_location(div3, file$1, 66, 12, 2146);
+    			div4.className = "formeditor svelte-1vfdoss";
+    			add_location(div4, file$1, 51, 8, 1283);
+    			div5.className = "uk-card uk-card-primary uk-padding svelte-1vfdoss";
+    			add_location(div5, file$1, 49, 4, 1197);
 
     			dispose = [
     				listen(input0, "input", ctx.input0_input_handler),
     				listen(input1, "input", ctx.input1_input_handler),
     				listen(input2, "input", ctx.input2_input_handler),
-    				listen(input3, "input", ctx.input3_input_handler),
     				listen(button, "click", ctx.gravar)
     			];
     		},
 
     		m: function mount(target, anchor) {
-    			insert(target, div7, anchor);
-    			append(div7, ul);
-    			append(ul, li0);
-    			append(li0, a0);
-    			append(li0, t1);
-    			append(li0, div1);
-    			append(div1, div0);
+    			insert(target, div5, anchor);
+    			append(div5, div4);
+    			append(div4, div0);
     			append(div0, span0);
-    			append(div0, t2);
+    			append(div0, t0);
     			append(div0, input0);
 
     			input0.value = ctx.nome;
 
-    			append(div0, t3);
-    			append(div0, input1);
+    			append(div4, t1);
+    			append(div4, div1);
+    			append(div1, span1);
+    			append(div1, t2);
+    			append(div1, input1);
 
-    			input1.value = ctx.id;
+    			input1.value = ctx.link;
 
-    			append(ul, t4);
-    			append(ul, li1);
-    			append(li1, a1);
-    			append(li1, t6);
-    			append(li1, div3);
-    			append(div3, div2);
-    			append(div2, span1);
-    			append(div2, t7);
+    			append(div4, t3);
+    			append(div4, div2);
+    			append(div2, span2);
+    			append(div2, t4);
     			append(div2, input2);
 
-    			input2.value = ctx.link;
+    			input2.value = ctx.imagem;
 
-    			append(ul, t8);
-    			append(ul, li2);
-    			append(li2, a2);
-    			append(li2, t10);
-    			append(li2, div5);
-    			append(div5, div4);
-    			append(div4, span2);
-    			append(div4, t11);
-    			append(div4, input3);
-
-    			input3.value = ctx.imagem;
-
-    			append(div7, t12);
-    			append(div7, div6);
-    			append(div6, button);
-    			append(div6, t14);
-    			if (if_block) if_block.m(div6, null);
+    			append(div4, t5);
+    			append(div4, div3);
+    			append(div3, button);
+    			append(button, t6);
+    			append(div3, t7);
+    			if (if_block) if_block.m(div3, null);
     			current = true;
     		},
 
     		p: function update(changed, ctx) {
     			if (changed.nome && (input0.value !== ctx.nome)) input0.value = ctx.nome;
-    			if (changed.id && (input1.value !== ctx.id)) input1.value = ctx.id;
-    			if (changed.link && (input2.value !== ctx.link)) input2.value = ctx.link;
-    			if (changed.imagem && (input3.value !== ctx.imagem)) input3.value = ctx.imagem;
+    			if (changed.link && (input1.value !== ctx.link)) input1.value = ctx.link;
+    			if (changed.imagem && (input2.value !== ctx.imagem)) input2.value = ctx.imagem;
 
     			if (ctx.selecionado) {
     				if (if_block) {
     					if_block.p(changed, ctx);
     				} else {
-    					if_block = create_if_block_1(ctx);
+    					if_block = create_if_block_1$1(ctx);
     					if_block.c();
-    					if_block.m(div6, null);
+    					if_block.m(div3, null);
     				}
     			} else if (if_block) {
     				if_block.d(1);
@@ -733,29 +2236,29 @@ var app = (function () {
     		i: function intro(local) {
     			if (current) return;
     			add_render_callback(() => {
-    				if (!div7_transition) div7_transition = create_bidirectional_transition(div7, slide, {}, true);
-    				div7_transition.run(1);
+    				if (!div5_transition) div5_transition = create_bidirectional_transition(div5, slide, {}, true);
+    				div5_transition.run(1);
     			});
 
     			current = true;
     		},
 
     		o: function outro(local) {
-    			if (!div7_transition) div7_transition = create_bidirectional_transition(div7, slide, {}, false);
-    			div7_transition.run(0);
+    			if (!div5_transition) div5_transition = create_bidirectional_transition(div5, slide, {}, false);
+    			div5_transition.run(0);
 
     			current = false;
     		},
 
     		d: function destroy(detaching) {
     			if (detaching) {
-    				detach(div7);
+    				detach(div5);
     			}
 
     			if (if_block) if_block.d();
 
     			if (detaching) {
-    				if (div7_transition) div7_transition.end();
+    				if (div5_transition) div5_transition.end();
     			}
 
     			run_all(dispose);
@@ -763,24 +2266,44 @@ var app = (function () {
     	};
     }
 
-    // (77:12) {#if selecionado}
-    function create_if_block_1(ctx) {
-    	var button0, t_1, button1, dispose;
+    // (69:16) {#if selecionado}
+    function create_if_block_1$1(ctx) {
+    	var button0, t0, t1, button1, t2, dispose;
 
     	return {
     		c: function create() {
     			button0 = element("button");
-    			button0.textContent = "Editar";
-    			t_1 = space();
+    			t0 = text("Editar");
+    			t1 = space();
     			button1 = element("button");
-    			button1.textContent = "Remover";
+    			t2 = text("Remover");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			button0 = claim_element(nodes, "BUTTON", { "uk-icon": true, class: true, style: true }, false);
+    			var button0_nodes = children(button0);
+
+    			t0 = claim_text(button0_nodes, "Editar");
+    			button0_nodes.forEach(detach);
+    			t1 = claim_text(nodes, "\r\n                ");
+
+    			button1 = claim_element(nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button1_nodes = children(button1);
+
+    			t2 = claim_text(button1_nodes, "Remover");
+    			button1_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
     			attr(button0, "uk-icon", "icon: file-edit");
-    			button0.className = "uk-button  uk-width-1-3";
+    			button0.className = "uk-button  uk-width-1-2";
     			set_style(button0, "background-color", "green");
-    			add_location(button0, file, 77, 12, 2925);
+    			add_location(button0, file$1, 69, 16, 2436);
     			attr(button1, "uk-icon", "icon: minus-circle");
-    			button1.className = "uk-button uk-button-danger uk-width-1-3";
-    			add_location(button1, file, 78, 12, 3072);
+    			button1.className = "uk-button uk-button-danger uk-width-1-2";
+    			add_location(button1, file$1, 70, 16, 2587);
 
     			dispose = [
     				listen(button0, "click", ctx.editar),
@@ -790,8 +2313,10 @@ var app = (function () {
 
     		m: function mount(target, anchor) {
     			insert(target, button0, anchor);
-    			insert(target, t_1, anchor);
+    			append(button0, t0);
+    			insert(target, t1, anchor);
     			insert(target, button1, anchor);
+    			append(button1, t2);
     		},
 
     		p: noop,
@@ -799,7 +2324,7 @@ var app = (function () {
     		d: function destroy(detaching) {
     			if (detaching) {
     				detach(button0);
-    				detach(t_1);
+    				detach(t1);
     				detach(button1);
     			}
 
@@ -808,10 +2333,10 @@ var app = (function () {
     	};
     }
 
-    function create_fragment(ctx) {
+    function create_fragment$3(ctx) {
     	var div, t, button, current, dispose;
 
-    	var if_block = (ctx.mostrar) && create_if_block(ctx);
+    	var if_block = (ctx.mostrar) && create_if_block$1(ctx);
 
     	return {
     		c: function create() {
@@ -819,16 +2344,31 @@ var app = (function () {
     			if (if_block) if_block.c();
     			t = space();
     			button = element("button");
-    			attr(button, "uk-icon", "icon: plus-circle");
-    			button.className = "uk-button";
-    			add_location(button, file, 84, 0, 3274);
-    			div.className = "uk-scope svelte-33u3kr";
-    			add_location(div, file, 39, 0, 991);
-    			dispose = listen(button, "click", ctx.toggleMostrar);
+    			this.h();
     		},
 
     		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    			div = claim_element(nodes, "DIV", { class: true }, false);
+    			var div_nodes = children(div);
+
+    			if (if_block) if_block.l(div_nodes);
+    			t = claim_text(div_nodes, "\r\n");
+
+    			button = claim_element(div_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button_nodes = children(button);
+
+    			button_nodes.forEach(detach);
+    			div_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			attr(button, "uk-icon", "icon: plus-circle");
+    			button.className = "uk-button uk-button-primary";
+    			add_location(button, file$1, 77, 0, 2813);
+    			div.className = "uk-scope svelte-1vfdoss";
+    			add_location(div, file$1, 47, 0, 1154);
+    			dispose = listen(button, "click", ctx.toggleMostrar);
     		},
 
     		m: function mount(target, anchor) {
@@ -845,7 +2385,7 @@ var app = (function () {
     					if_block.p(changed, ctx);
     					if_block.i(1);
     				} else {
-    					if_block = create_if_block(ctx);
+    					if_block = create_if_block$1(ctx);
     					if_block.c();
     					if_block.i(1);
     					if_block.m(div, t);
@@ -884,7 +2424,7 @@ var app = (function () {
     	};
     }
 
-    function instance($$self, $$props, $$invalidate) {
+    function instance$3($$self, $$props, $$invalidate) {
     	
         const dispatch = createEventDispatcher();
 
@@ -915,16 +2455,11 @@ var app = (function () {
     	}
 
     	function input1_input_handler() {
-    		id = this.value;
-    		$$invalidate('id', id);
-    	}
-
-    	function input2_input_handler() {
     		link = this.value;
     		$$invalidate('link', link);
     	}
 
-    	function input3_input_handler() {
+    	function input2_input_handler() {
     		imagem = this.value;
     		$$invalidate('imagem', imagem);
     	}
@@ -958,15 +2493,14 @@ var app = (function () {
     		toggleMostrar,
     		input0_input_handler,
     		input1_input_handler,
-    		input2_input_handler,
-    		input3_input_handler
+    		input2_input_handler
     	};
     }
 
     class Editor extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, ["link", "imagem", "nome", "id", "selecionado", "itemsTab1"]);
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, ["link", "imagem", "nome", "id", "selecionado", "itemsTab1"]);
 
     		const { ctx } = this.$$;
     		const props = options.props || {};
@@ -1039,38 +2573,20 @@ var app = (function () {
     	}
     }
 
-    /* src\App.svelte generated by Svelte v3.5.1 */
+    /* src\Home.svelte generated by Svelte v3.5.1 */
 
-    const file$1 = "src\\App.svelte";
+    const file$2 = "src\\Home.svelte";
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = Object.create(ctx);
-    	child_ctx.server = list[i];
-    	return child_ctx;
-    }
-
-    function get_each_context_1(ctx, list, i) {
-    	const child_ctx = Object.create(ctx);
-    	child_ctx.site = list[i];
-    	return child_ctx;
-    }
-
-    function get_each_context_2(ctx, list, i) {
-    	const child_ctx = Object.create(ctx);
-    	child_ctx.server = list[i];
-    	return child_ctx;
-    }
-
-    function get_each_context_3(ctx, list, i) {
-    	const child_ctx = Object.create(ctx);
     	child_ctx.item = list[i];
-    	child_ctx.each_value_3 = list;
+    	child_ctx.each_value = list;
     	child_ctx.item_index = i;
     	return child_ctx;
     }
 
-    // (186:14) {#each itemsTab1 as item}
-    function create_each_block_3(ctx) {
+    // (96:14) {#each itemsTab1 as item}
+    function create_each_block(ctx) {
     	var label, input, t0, a, t1_value = ctx.item.nome, t1, t2, img, img_src_value, a_href_value, label_transition, current, dispose;
 
     	function input_change_handler() {
@@ -1086,15 +2602,44 @@ var app = (function () {
     			t1 = text(t1_value);
     			t2 = space();
     			img = element("img");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			label = claim_element(nodes, "LABEL", {}, false);
+    			var label_nodes = children(label);
+
+    			input = claim_element(label_nodes, "INPUT", { class: true, type: true }, false);
+    			var input_nodes = children(input);
+
+    			input_nodes.forEach(detach);
+    			t0 = claim_text(label_nodes, "\r\n                  ");
+
+    			a = claim_element(label_nodes, "A", { href: true }, false);
+    			var a_nodes = children(a);
+
+    			t1 = claim_text(a_nodes, t1_value);
+    			t2 = claim_text(a_nodes, "\r\n                    ");
+
+    			img = claim_element(a_nodes, "IMG", { src: true, alt: true }, false);
+    			var img_nodes = children(img);
+
+    			img_nodes.forEach(detach);
+    			a_nodes.forEach(detach);
+    			label_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
     			input.className = "uk-checkbox";
     			attr(input, "type", "checkbox");
-    			add_location(input, file$1, 187, 18, 5989);
+    			add_location(input, file$2, 97, 18, 2581);
     			img.src = img_src_value = ctx.item.img;
     			img.alt = "";
-    			add_location(img, file$1, 193, 20, 6216);
+    			add_location(img, file$2, 103, 20, 2814);
     			a.href = a_href_value = ctx.item.link;
-    			add_location(a, file$1, 191, 18, 6142);
-    			add_location(label, file$1, 186, 16, 5946);
+    			add_location(a, file$2, 101, 18, 2738);
+    			add_location(label, file$2, 96, 16, 2537);
     			dispose = listen(input, "change", input_change_handler);
     		},
 
@@ -1157,185 +2702,8 @@ var app = (function () {
     	};
     }
 
-    // (212:26) {#each servidores as server}
-    function create_each_block_2(ctx) {
-    	var option, t_value = ctx.server.name, t, option_value_value;
-
-    	return {
-    		c: function create() {
-    			option = element("option");
-    			t = text(t_value);
-    			option.__value = option_value_value = ctx.server.id;
-    			option.value = option.__value;
-    			add_location(option, file$1, 212, 30, 7017);
-    		},
-
-    		m: function mount(target, anchor) {
-    			insert(target, option, anchor);
-    			append(option, t);
-    		},
-
-    		p: function update(changed, ctx) {
-    			if ((changed.servidores) && t_value !== (t_value = ctx.server.name)) {
-    				set_data(t, t_value);
-    			}
-
-    			if ((changed.servidores) && option_value_value !== (option_value_value = ctx.server.id)) {
-    				option.__value = option_value_value;
-    			}
-
-    			option.value = option.__value;
-    		},
-
-    		d: function destroy(detaching) {
-    			if (detaching) {
-    				detach(option);
-    			}
-    		}
-    	};
-    }
-
-    // (220:12) {#each sites3lados as site}
-    function create_each_block_1(ctx) {
-    	var div, t0_value = ctx.site.id, t0, t1, a0, t2_value = ctx.site.title.rendered, t2, t3, a1, t4, a1_name_value, div_transition, current, dispose;
-
-    	return {
-    		c: function create() {
-    			div = element("div");
-    			t0 = text(t0_value);
-    			t1 = space();
-    			a0 = element("a");
-    			t2 = text(t2_value);
-    			t3 = space();
-    			a1 = element("a");
-    			t4 = text("x");
-    			a0.href = "#";
-    			add_location(a0, file$1, 222, 16, 7470);
-    			a1.href = "#";
-    			attr(a1, "name", a1_name_value = ctx.site.id);
-    			add_location(a1, file$1, 222, 55, 7509);
-    			div.className = "listasites";
-    			add_location(div, file$1, 220, 14, 7386);
-    			dispose = listen(a1, "click", removeSite);
-    		},
-
-    		m: function mount(target, anchor) {
-    			insert(target, div, anchor);
-    			append(div, t0);
-    			append(div, t1);
-    			append(div, a0);
-    			append(a0, t2);
-    			append(a0, t3);
-    			append(div, a1);
-    			append(a1, t4);
-    			current = true;
-    		},
-
-    		p: function update(changed, ctx) {
-    			if ((!current || changed.sites3lados) && t0_value !== (t0_value = ctx.site.id)) {
-    				set_data(t0, t0_value);
-    			}
-
-    			if ((!current || changed.sites3lados) && t2_value !== (t2_value = ctx.site.title.rendered)) {
-    				set_data(t2, t2_value);
-    			}
-
-    			if ((!current || changed.sites3lados) && a1_name_value !== (a1_name_value = ctx.site.id)) {
-    				attr(a1, "name", a1_name_value);
-    			}
-    		},
-
-    		i: function intro(local) {
-    			if (current) return;
-    			add_render_callback(() => {
-    				if (!div_transition) div_transition = create_bidirectional_transition(div, slide, {}, true);
-    				div_transition.run(1);
-    			});
-
-    			current = true;
-    		},
-
-    		o: function outro(local) {
-    			if (!div_transition) div_transition = create_bidirectional_transition(div, slide, {}, false);
-    			div_transition.run(0);
-
-    			current = false;
-    		},
-
-    		d: function destroy(detaching) {
-    			if (detaching) {
-    				detach(div);
-    				if (div_transition) div_transition.end();
-    			}
-
-    			dispose();
-    		}
-    	};
-    }
-
-    // (227:12) {#each servidores as server}
-    function create_each_block(ctx) {
-    	var label, a, t0_value = ctx.server.id, t0, t1, t2_value = ctx.server.name, t2, label_transition, current;
-
-    	return {
-    		c: function create() {
-    			label = element("label");
-    			a = element("a");
-    			t0 = text(t0_value);
-    			t1 = space();
-    			t2 = text(t2_value);
-    			a.href = "#";
-    			add_location(a, file$1, 228, 16, 7733);
-    			add_location(label, file$1, 227, 14, 7692);
-    		},
-
-    		m: function mount(target, anchor) {
-    			insert(target, label, anchor);
-    			append(label, a);
-    			append(a, t0);
-    			append(a, t1);
-    			append(a, t2);
-    			current = true;
-    		},
-
-    		p: function update(changed, ctx) {
-    			if ((!current || changed.servidores) && t0_value !== (t0_value = ctx.server.id)) {
-    				set_data(t0, t0_value);
-    			}
-
-    			if ((!current || changed.servidores) && t2_value !== (t2_value = ctx.server.name)) {
-    				set_data(t2, t2_value);
-    			}
-    		},
-
-    		i: function intro(local) {
-    			if (current) return;
-    			add_render_callback(() => {
-    				if (!label_transition) label_transition = create_bidirectional_transition(label, slide, {}, true);
-    				label_transition.run(1);
-    			});
-
-    			current = true;
-    		},
-
-    		o: function outro(local) {
-    			if (!label_transition) label_transition = create_bidirectional_transition(label, slide, {}, false);
-    			label_transition.run(0);
-
-    			current = false;
-    		},
-
-    		d: function destroy(detaching) {
-    			if (detaching) {
-    				detach(label);
-    				if (label_transition) label_transition.end();
-    			}
-    		}
-    	};
-    }
-
-    function create_fragment$1(ctx) {
-    	var t0, div21, div1, div0, img0, t1, div14, div7, ul, li0, a0, t3, div3, div2, t4, li1, a1, t6, div6, h20, t8, fieldset, div4, input0, t9, input1, t10, div5, select, t11, button, t13, t14, h21, t16, t17, div8, h10, t19, a2, t20, img1, t21, a3, t22, img2, t23, a4, t24, img3, t25, a5, t27, h22, t29, a6, t31, a7, t33, h23, t35, a8, t37, a9, t39, a10, t41, a11, t43, a12, t45, a13, t47, a14, t49, h24, t51, a15, t53, a16, t55, a17, t57, a18, t59, div13, h11, t61, h25, t63, h30, t64, b0, t66, div9, a19, t68, a20, t70, h31, t71, b1, t73, div10, a21, t75, a22, t77, h32, t78, b2, t79, div11, a23, t81, a24, t83, h33, t84, b3, t85, div12, a25, t87, a26, t89, h26, t91, a27, t93, h27, t95, a28, t97, a29, t99, div20, div15, t101, div16, t103, div17, t105, div18, t107, div19, current, dispose;
+    function create_fragment$4(ctx) {
+    	var div17, div1, div0, t0, div10, div3, t1, div2, t2, div4, h10, t3, t4, a0, t5, img0, t6, a1, t7, img1, t8, a2, t9, img2, t10, a3, t11, t12, h20, t13, t14, a4, t15, t16, a5, t17, t18, h21, t19, t20, a6, t21, t22, a7, t23, t24, a8, t25, t26, a9, t27, t28, a10, t29, t30, a11, t31, t32, a12, t33, t34, h22, t35, t36, a13, t37, t38, a14, t39, t40, a15, t41, t42, a16, t43, t44, div9, h11, t45, t46, h23, t47, t48, h30, t49, b0, t50, t51, div5, a17, t52, t53, a18, t54, t55, h31, t56, b1, t57, t58, div6, a19, t59, t60, a20, t61, t62, h32, t63, b2, t64, div7, a21, t65, t66, a22, t67, t68, h33, t69, b3, t70, div8, a23, t71, t72, a24, t73, t74, h24, t75, t76, a25, t77, t78, h25, t79, t80, a26, t81, t82, a27, t83, t84, div16, div11, t85, t86, div12, t87, t88, div13, t89, t90, div14, t91, t92, div15, t93, current;
 
     	var editor = new Editor({
     		props: {
@@ -1352,57 +2720,7 @@ var app = (function () {
     	editor.$on("salvar", ctx.salvar);
     	editor.$on("editar", ctx.editar);
 
-    	var each_value_3 = ctx.itemsTab1;
-
-    	var each_blocks_3 = [];
-
-    	for (var i = 0; i < each_value_3.length; i += 1) {
-    		each_blocks_3[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
-    	}
-
-    	function outro_block(i, detaching, local) {
-    		if (each_blocks_3[i]) {
-    			if (detaching) {
-    				on_outro(() => {
-    					each_blocks_3[i].d(detaching);
-    					each_blocks_3[i] = null;
-    				});
-    			}
-
-    			each_blocks_3[i].o(local);
-    		}
-    	}
-
-    	var each_value_2 = ctx.servidores;
-
-    	var each_blocks_2 = [];
-
-    	for (var i = 0; i < each_value_2.length; i += 1) {
-    		each_blocks_2[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
-    	}
-
-    	var each_value_1 = ctx.sites3lados;
-
-    	var each_blocks_1 = [];
-
-    	for (var i = 0; i < each_value_1.length; i += 1) {
-    		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
-    	}
-
-    	function outro_block_1(i, detaching, local) {
-    		if (each_blocks_1[i]) {
-    			if (detaching) {
-    				on_outro(() => {
-    					each_blocks_1[i].d(detaching);
-    					each_blocks_1[i] = null;
-    				});
-    			}
-
-    			each_blocks_1[i].o(local);
-    		}
-    	}
-
-    	var each_value = ctx.servidores;
+    	var each_value = ctx.itemsTab1;
 
     	var each_blocks = [];
 
@@ -1410,7 +2728,7 @@ var app = (function () {
     		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
     	}
 
-    	function outro_block_2(i, detaching, local) {
+    	function outro_block(i, detaching, local) {
     		if (each_blocks[i]) {
     			if (detaching) {
     				on_outro(() => {
@@ -1425,564 +2743,880 @@ var app = (function () {
 
     	return {
     		c: function create() {
-    			editor.$$.fragment.c();
-    			t0 = space();
-    			div21 = element("div");
+    			div17 = element("div");
     			div1 = element("div");
     			div0 = element("div");
-    			img0 = element("img");
-    			t1 = space();
-    			div14 = element("div");
-    			div7 = element("div");
-    			ul = element("ul");
-    			li0 = element("li");
-    			a0 = element("a");
-    			a0.textContent = "Links";
-    			t3 = space();
+    			t0 = space();
+    			div10 = element("div");
     			div3 = element("div");
+    			editor.$$.fragment.c();
+    			t1 = space();
     			div2 = element("div");
-
-    			for (var i = 0; i < each_blocks_3.length; i += 1) {
-    				each_blocks_3[i].c();
-    			}
-
-    			t4 = space();
-    			li1 = element("li");
-    			a1 = element("a");
-    			a1.textContent = "Sites";
-    			t6 = space();
-    			div6 = element("div");
-    			h20 = element("h2");
-    			h20.textContent = "Sites";
-    			t8 = space();
-    			fieldset = element("fieldset");
-    			div4 = element("div");
-    			input0 = element("input");
-    			t9 = space();
-    			input1 = element("input");
-    			t10 = space();
-    			div5 = element("div");
-    			select = element("select");
-
-    			for (var i = 0; i < each_blocks_2.length; i += 1) {
-    				each_blocks_2[i].c();
-    			}
-
-    			t11 = space();
-    			button = element("button");
-    			button.textContent = "Adicionar";
-    			t13 = space();
-
-    			for (var i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].c();
-    			}
-
-    			t14 = space();
-    			h21 = element("h2");
-    			h21.textContent = "Servidores";
-    			t16 = space();
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t17 = space();
-    			div8 = element("div");
+    			t2 = space();
+    			div4 = element("div");
     			h10 = element("h1");
-    			h10.textContent = "Links";
-    			t19 = space();
-    			a2 = element("a");
-    			t20 = text("/pol/\n        ");
+    			t3 = text("Links");
+    			t4 = space();
+    			a0 = element("a");
+    			t5 = text("/pol/\r\n        ");
+    			img0 = element("img");
+    			t6 = space();
+    			a1 = element("a");
+    			t7 = text("/wg/\r\n        ");
     			img1 = element("img");
-    			t21 = space();
-    			a3 = element("a");
-    			t22 = text("/wg/\n        ");
+    			t8 = space();
+    			a2 = element("a");
+    			t9 = text("/gd/\r\n        ");
     			img2 = element("img");
-    			t23 = space();
+    			t10 = space();
+    			a3 = element("a");
+    			t11 = text("Asana");
+    			t12 = space();
+    			h20 = element("h2");
+    			t13 = text("Sites de Imagens");
+    			t14 = space();
     			a4 = element("a");
-    			t24 = text("/gd/\n        ");
-    			img3 = element("img");
-    			t25 = space();
+    			t15 = text("PXHere");
+    			t16 = space();
     			a5 = element("a");
-    			a5.textContent = "Asana";
-    			t27 = space();
-    			h22 = element("h2");
-    			h22.textContent = "Sites de Imagens";
-    			t29 = space();
+    			t17 = text("Pexels");
+    			t18 = space();
+    			h21 = element("h2");
+    			t19 = text("CSS");
+    			t20 = space();
     			a6 = element("a");
-    			a6.textContent = "PXHere";
-    			t31 = space();
+    			t21 = text("Animista - presets de animações");
+    			t22 = space();
     			a7 = element("a");
-    			a7.textContent = "Pexels";
-    			t33 = space();
-    			h23 = element("h2");
-    			h23.textContent = "CSS";
-    			t35 = space();
+    			t23 = text("Loading.io");
+    			t24 = space();
     			a8 = element("a");
-    			a8.textContent = "Animista - presets de animações";
-    			t37 = space();
+    			t25 = text("Coolors - cores, paletas");
+    			t26 = space();
     			a9 = element("a");
-    			a9.textContent = "Loading.io";
-    			t39 = space();
+    			t27 = text("Clippy - SVG formas geometricas");
+    			t28 = space();
     			a10 = element("a");
-    			a10.textContent = "Coolors - cores, paletas";
-    			t41 = space();
+    			t29 = text("SVG Backgrounds");
+    			t30 = space();
     			a11 = element("a");
-    			a11.textContent = "Clippy - SVG formas geometricas";
-    			t43 = space();
+    			t31 = text("Triangulos backgrounds");
+    			t32 = space();
     			a12 = element("a");
-    			a12.textContent = "SVG Backgrounds";
-    			t45 = space();
+    			t33 = text("Keyframes.app");
+    			t34 = space();
+    			h22 = element("h2");
+    			t35 = text("Inspiração");
+    			t36 = space();
     			a13 = element("a");
-    			a13.textContent = "Triangulos backgrounds";
-    			t47 = space();
+    			t37 = text("Evernote Design");
+    			t38 = space();
     			a14 = element("a");
-    			a14.textContent = "Keyframes.app";
-    			t49 = space();
-    			h24 = element("h2");
-    			h24.textContent = "Inspiração";
-    			t51 = space();
+    			t39 = text("Webframe");
+    			t40 = space();
     			a15 = element("a");
-    			a15.textContent = "Evernote Design";
-    			t53 = space();
+    			t41 = text("Dribble");
+    			t42 = space();
     			a16 = element("a");
-    			a16.textContent = "Webframe";
-    			t55 = space();
-    			a17 = element("a");
-    			a17.textContent = "Dribble";
-    			t57 = space();
-    			a18 = element("a");
-    			a18.textContent = "Dribble 2";
-    			t59 = space();
-    			div13 = element("div");
-    			h11 = element("h1");
-    			h11.textContent = "Work";
-    			t61 = space();
-    			h25 = element("h2");
-    			h25.textContent = "Servidores";
-    			t63 = space();
-    			h30 = element("h3");
-    			t64 = text("Contabo  \n        ");
-    			b0 = element("b");
-    			b0.textContent = "6";
-    			t66 = space();
+    			t43 = text("Dribble 2");
+    			t44 = space();
     			div9 = element("div");
-    			a19 = element("a");
-    			a19.textContent = "Rancher";
-    			t68 = space();
-    			a20 = element("a");
-    			a20.textContent = "PMA";
-    			t70 = space();
+    			h11 = element("h1");
+    			t45 = text("Work");
+    			t46 = space();
+    			h23 = element("h2");
+    			t47 = text("Servidores");
+    			t48 = space();
+    			h30 = element("h3");
+    			t49 = text("Contabo  \r\n        ");
+    			b0 = element("b");
+    			t50 = text("6");
+    			t51 = space();
+    			div5 = element("div");
+    			a17 = element("a");
+    			t52 = text("Rancher");
+    			t53 = space();
+    			a18 = element("a");
+    			t54 = text("PMA");
+    			t55 = space();
     			h31 = element("h3");
-    			t71 = text("Contabo  \n        ");
+    			t56 = text("Contabo  \r\n        ");
     			b1 = element("b");
-    			b1.textContent = "8";
-    			t73 = space();
-    			div10 = element("div");
-    			a21 = element("a");
-    			a21.textContent = "Rancher";
-    			t75 = space();
-    			a22 = element("a");
-    			a22.textContent = "PMA";
-    			t77 = space();
+    			t57 = text("8");
+    			t58 = space();
+    			div6 = element("div");
+    			a19 = element("a");
+    			t59 = text("Rancher");
+    			t60 = space();
+    			a20 = element("a");
+    			t61 = text("PMA");
+    			t62 = space();
     			h32 = element("h3");
-    			t78 = text("Hetzner  \n        ");
+    			t63 = text("Hetzner  \r\n        ");
     			b2 = element("b");
-    			t79 = space();
-    			div11 = element("div");
-    			a23 = element("a");
-    			a23.textContent = "Rancher";
-    			t81 = space();
-    			a24 = element("a");
-    			a24.textContent = "PMA";
-    			t83 = space();
+    			t64 = space();
+    			div7 = element("div");
+    			a21 = element("a");
+    			t65 = text("Rancher");
+    			t66 = space();
+    			a22 = element("a");
+    			t67 = text("PMA");
+    			t68 = space();
     			h33 = element("h3");
-    			t84 = text("Hetzner  2\n        ");
+    			t69 = text("Hetzner  2\r\n        ");
     			b3 = element("b");
-    			t85 = space();
-    			div12 = element("div");
+    			t70 = space();
+    			div8 = element("div");
+    			a23 = element("a");
+    			t71 = text("Rancher");
+    			t72 = space();
+    			a24 = element("a");
+    			t73 = text("PMA");
+    			t74 = space();
+    			h24 = element("h2");
+    			t75 = text("Github");
+    			t76 = space();
     			a25 = element("a");
-    			a25.textContent = "Rancher";
-    			t87 = space();
+    			t77 = text("Github relato");
+    			t78 = space();
+    			h25 = element("h2");
+    			t79 = text("Mautic");
+    			t80 = space();
     			a26 = element("a");
-    			a26.textContent = "PMA";
-    			t89 = space();
-    			h26 = element("h2");
-    			h26.textContent = "Github";
-    			t91 = space();
+    			t81 = text("Guia Powertic");
+    			t82 = space();
     			a27 = element("a");
-    			a27.textContent = "Github relato";
-    			t93 = space();
-    			h27 = element("h2");
-    			h27.textContent = "Mautic";
-    			t95 = space();
-    			a28 = element("a");
-    			a28.textContent = "Guia Powertic";
-    			t97 = space();
-    			a29 = element("a");
-    			a29.textContent = "Luizeof";
-    			t99 = space();
-    			div20 = element("div");
-    			div15 = element("div");
-    			div15.textContent = "424964";
-    			t101 = space();
+    			t83 = text("Luizeof");
+    			t84 = space();
     			div16 = element("div");
-    			div16.textContent = "1A1423";
-    			t103 = space();
-    			div17 = element("div");
-    			div17.textContent = "E26D5A";
-    			t105 = space();
-    			div18 = element("div");
-    			div18.textContent = "FFC857";
-    			t107 = space();
-    			div19 = element("div");
-    			div19.textContent = "1F2041";
-    			img0.src = "images/pdp.svg";
-    			img0.width = "50px";
-    			img0.alt = "";
-    			add_location(img0, file$1, 172, 6, 5572);
-    			add_location(div0, file$1, 171, 4, 5560);
-    			div1.className = "sidebar esquerda";
-    			add_location(div1, file$1, 170, 2, 5525);
-    			a0.className = "uk-accordion-title";
-    			a0.href = "#";
-    			add_location(a0, file$1, 182, 10, 5763);
-    			div2.className = "nested";
-    			add_location(div2, file$1, 184, 12, 5869);
-    			div3.className = "uk-accordion-content";
-    			add_location(div3, file$1, 183, 10, 5822);
-    			li0.className = "uk-open";
-    			add_location(li0, file$1, 181, 8, 5732);
-    			a1.className = "uk-accordion-title";
-    			a1.href = "#";
-    			add_location(a1, file$1, 201, 10, 6389);
-    			add_location(h20, file$1, 203, 12, 6495);
-    			input0.className = "uk-input";
-    			attr(input0, "type", "text");
-    			input0.placeholder = "Nome";
-    			add_location(input0, file$1, 206, 24, 6625);
-    			input1.className = "uk-input";
-    			attr(input1, "type", "text");
-    			input1.placeholder = "URL";
-    			add_location(input1, file$1, 207, 24, 6730);
-    			div4.className = "uk-margin";
-    			add_location(div4, file$1, 205, 20, 6577);
-    			select.className = "uk-select";
-    			add_location(select, file$1, 210, 24, 6905);
-    			div5.className = "uk-margin";
-    			add_location(div5, file$1, 209, 20, 6857);
-    			fieldset.className = "uk-fieldset";
-    			add_location(fieldset, file$1, 204, 16, 6526);
-    			attr(button, "uk-icon", "icon: plus-circle");
-    			button.className = "uk-button uk-button-body uk-width-1-3";
-    			add_location(button, file$1, 217, 16, 7207);
-    			add_location(h21, file$1, 225, 12, 7617);
-    			div6.className = "uk-accordion-content";
-    			add_location(div6, file$1, 202, 10, 6448);
-    			add_location(li1, file$1, 200, 8, 6374);
-    			attr(ul, "uk-accordion", "");
-    			add_location(ul, file$1, 180, 6, 5706);
-    			div7.className = "colunas nested";
-    			add_location(div7, file$1, 178, 4, 5670);
-    			add_location(h10, file$1, 237, 6, 7907);
-    			img1.src = "images/icons/4chan.png";
-    			img1.alt = "";
-    			add_location(img1, file$1, 240, 8, 7991);
-    			a2.href = "https://boards.4chan.org/pol/";
-    			add_location(a2, file$1, 238, 6, 7928);
-    			img2.src = "images/icons/4chan.png";
-    			img2.alt = "";
-    			add_location(img2, file$1, 244, 8, 8112);
-    			a3.href = "https://boards.4chan.org/wg/";
-    			add_location(a3, file$1, 242, 6, 8051);
-    			img3.src = "images/icons/4chan.png";
-    			img3.alt = "";
-    			add_location(img3, file$1, 248, 8, 8234);
-    			a4.href = "https://boards.4chan.org/gd/";
-    			add_location(a4, file$1, 246, 6, 8173);
-    			a5.href = "https://app.asana.com/";
-    			add_location(a5, file$1, 250, 6, 8295);
-    			add_location(h22, file$1, 251, 6, 8344);
-    			a6.href = "https://pxhere.com/pt/";
-    			add_location(a6, file$1, 252, 6, 8376);
-    			a7.href = "https://www.pexels.com/";
-    			add_location(a7, file$1, 253, 6, 8426);
-    			h23.className = "tracking-in-contract";
-    			add_location(h23, file$1, 254, 6, 8477);
-    			a8.href = "http://animista.net/play/background/ken-burns/kenburns-bottom-left";
-    			add_location(a8, file$1, 255, 6, 8525);
-    			a9.href = "https://loading.io/";
-    			add_location(a9, file$1, 259, 6, 8668);
-    			a10.href = "https://coolors.co/424964-1a1423-e26d5a-ffc857-1f2041";
-    			add_location(a10, file$1, 260, 6, 8719);
-    			a11.href = "https://bennettfeely.com/clippy/";
-    			add_location(a11, file$1, 263, 6, 8834);
-    			a12.href = "https://www.svgbackgrounds.com/";
-    			add_location(a12, file$1, 266, 6, 8935);
-    			a13.href = "http://alssndro.github.io/trianglify-background-generator/";
-    			add_location(a13, file$1, 267, 6, 9003);
-    			a14.href = "https://keyframes.app/editor/";
-    			add_location(a14, file$1, 270, 6, 9121);
-    			add_location(h24, file$1, 271, 6, 9185);
-    			a15.href = "https://www.evernote.design/";
-    			add_location(a15, file$1, 272, 6, 9211);
-    			a16.href = "https://webframe.xyz/";
-    			add_location(a16, file$1, 273, 6, 9276);
-    			a17.href = "https://dribbble.com/fantasy";
-    			add_location(a17, file$1, 274, 6, 9327);
-    			a18.href = "https://dribbble.com/fantasy";
-    			add_location(a18, file$1, 275, 6, 9384);
-    			div8.className = "colunas";
-    			add_location(div8, file$1, 236, 4, 7879);
-    			add_location(h11, file$1, 278, 6, 9480);
-    			h25.className = "tracking-in-contract";
-    			add_location(h25, file$1, 279, 6, 9500);
-    			add_location(b0, file$1, 282, 8, 9586);
-    			add_location(h30, file$1, 280, 6, 9555);
-    			a19.href = "http://contabo6.oncloud.net.br:10001/env/1a5/apps/stacks";
-    			add_location(a19, file$1, 285, 8, 9642);
-    			a20.href = "http://phpmyadmin6.3lados.com.br/";
-    			add_location(a20, file$1, 288, 8, 9749);
-    			div9.className = "nested";
-    			add_location(div9, file$1, 284, 6, 9613);
-    			add_location(b1, file$1, 292, 8, 9851);
-    			add_location(h31, file$1, 290, 6, 9820);
-    			a21.href = "http://contabo8.3lados.com.br:10001/";
-    			add_location(a21, file$1, 295, 8, 9907);
-    			a22.href = "http://phpmyadmin8.3lados.com.br/";
-    			add_location(a22, file$1, 296, 8, 9974);
-    			div10.className = "nested";
-    			add_location(div10, file$1, 294, 6, 9878);
-    			add_location(b2, file$1, 300, 8, 10076);
-    			add_location(h32, file$1, 298, 6, 10045);
-    			a23.href = "http://116.203.114.19:10001";
-    			add_location(a23, file$1, 303, 8, 10129);
-    			a24.href = "http://phpmyadminhetzner.3lados.com.br";
-    			add_location(a24, file$1, 304, 8, 10187);
-    			div11.className = "nested";
-    			add_location(div11, file$1, 302, 6, 10100);
-    			add_location(b3, file$1, 308, 8, 10295);
-    			add_location(h33, file$1, 306, 6, 10263);
-    			a25.href = "http://hetzner2.3lados.com.br:10001/";
-    			add_location(a25, file$1, 311, 8, 10348);
-    			a26.href = "http://pmahetzner2.3lados.com.br/";
-    			add_location(a26, file$1, 312, 8, 10415);
-    			div12.className = "nested";
-    			add_location(div12, file$1, 310, 6, 10319);
-    			h26.className = "tracking-in-contract";
-    			add_location(h26, file$1, 315, 6, 10487);
-    			a27.href = "https://github.com/RELATO";
-    			add_location(a27, file$1, 316, 6, 10538);
-    			h27.className = "tracking-in-contract";
-    			add_location(h27, file$1, 317, 6, 10598);
-    			a28.href = "https://powertic.com/pt-br/guia-para-iniciantes-em-mautic/";
-    			add_location(a28, file$1, 318, 6, 10649);
-    			a29.href = "https://luizeof.com.br/";
-    			add_location(a29, file$1, 321, 6, 10758);
-    			div13.className = "colunas";
-    			add_location(div13, file$1, 277, 4, 9452);
-    			div14.className = "centro";
-    			add_location(div14, file$1, 176, 2, 5644);
-    			set_style(div15, "background-color", "#424964");
-    			add_location(div15, file$1, 325, 4, 10860);
-    			set_style(div16, "background-color", "#1A1423");
-    			add_location(div16, file$1, 326, 4, 10916);
-    			set_style(div17, "background-color", "#E26D5A");
-    			add_location(div17, file$1, 327, 4, 10972);
-    			set_style(div18, "background-color", "#FFC857");
-    			add_location(div18, file$1, 328, 4, 11028);
-    			set_style(div19, "background-color", "#1F2041");
-    			add_location(div19, file$1, 329, 4, 11084);
-    			div20.className = "sidebar direita";
-    			add_location(div20, file$1, 324, 2, 10826);
-    			div21.className = "main";
-    			add_location(div21, file$1, 169, 0, 5504);
-
-    			dispose = [
-    				listen(input0, "input", ctx.input0_input_handler),
-    				listen(input1, "input", ctx.input1_input_handler),
-    				listen(button, "click", ctx.addSite)
-    			];
+    			div11 = element("div");
+    			t85 = text("424964");
+    			t86 = space();
+    			div12 = element("div");
+    			t87 = text("1A1423");
+    			t88 = space();
+    			div13 = element("div");
+    			t89 = text("E26D5A");
+    			t90 = space();
+    			div14 = element("div");
+    			t91 = text("FFC857");
+    			t92 = space();
+    			div15 = element("div");
+    			t93 = text("1F2041");
+    			this.h();
     		},
 
     		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    			div17 = claim_element(nodes, "DIV", { class: true }, false);
+    			var div17_nodes = children(div17);
+
+    			div1 = claim_element(div17_nodes, "DIV", { class: true }, false);
+    			var div1_nodes = children(div1);
+
+    			div0 = claim_element(div1_nodes, "DIV", {}, false);
+    			var div0_nodes = children(div0);
+
+    			div0_nodes.forEach(detach);
+    			div1_nodes.forEach(detach);
+    			t0 = claim_text(div17_nodes, "\r\n\r\n  ");
+
+    			div10 = claim_element(div17_nodes, "DIV", { class: true }, false);
+    			var div10_nodes = children(div10);
+
+    			div3 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div3_nodes = children(div3);
+
+    			editor.$$.fragment.l(div3_nodes);
+    			t1 = claim_text(div3_nodes, "\r\n\r\n            ");
+
+    			div2 = claim_element(div3_nodes, "DIV", { class: true }, false);
+    			var div2_nodes = children(div2);
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].l(div2_nodes);
+    			}
+
+    			div2_nodes.forEach(detach);
+    			div3_nodes.forEach(detach);
+    			t2 = claim_text(div10_nodes, "\r\n\r\n    ");
+
+    			div4 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div4_nodes = children(div4);
+
+    			h10 = claim_element(div4_nodes, "H1", {}, false);
+    			var h10_nodes = children(h10);
+
+    			t3 = claim_text(h10_nodes, "Links");
+    			h10_nodes.forEach(detach);
+    			t4 = claim_text(div4_nodes, "\r\n      ");
+
+    			a0 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a0_nodes = children(a0);
+
+    			t5 = claim_text(a0_nodes, "/pol/\r\n        ");
+
+    			img0 = claim_element(a0_nodes, "IMG", { src: true, alt: true }, false);
+    			var img0_nodes = children(img0);
+
+    			img0_nodes.forEach(detach);
+    			a0_nodes.forEach(detach);
+    			t6 = claim_text(div4_nodes, "\r\n      ");
+
+    			a1 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a1_nodes = children(a1);
+
+    			t7 = claim_text(a1_nodes, "/wg/\r\n        ");
+
+    			img1 = claim_element(a1_nodes, "IMG", { src: true, alt: true }, false);
+    			var img1_nodes = children(img1);
+
+    			img1_nodes.forEach(detach);
+    			a1_nodes.forEach(detach);
+    			t8 = claim_text(div4_nodes, "\r\n      ");
+
+    			a2 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a2_nodes = children(a2);
+
+    			t9 = claim_text(a2_nodes, "/gd/\r\n        ");
+
+    			img2 = claim_element(a2_nodes, "IMG", { src: true, alt: true }, false);
+    			var img2_nodes = children(img2);
+
+    			img2_nodes.forEach(detach);
+    			a2_nodes.forEach(detach);
+    			t10 = claim_text(div4_nodes, "\r\n      ");
+
+    			a3 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a3_nodes = children(a3);
+
+    			t11 = claim_text(a3_nodes, "Asana");
+    			a3_nodes.forEach(detach);
+    			t12 = claim_text(div4_nodes, "\r\n      ");
+
+    			h20 = claim_element(div4_nodes, "H2", {}, false);
+    			var h20_nodes = children(h20);
+
+    			t13 = claim_text(h20_nodes, "Sites de Imagens");
+    			h20_nodes.forEach(detach);
+    			t14 = claim_text(div4_nodes, "\r\n      ");
+
+    			a4 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a4_nodes = children(a4);
+
+    			t15 = claim_text(a4_nodes, "PXHere");
+    			a4_nodes.forEach(detach);
+    			t16 = claim_text(div4_nodes, "\r\n      ");
+
+    			a5 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a5_nodes = children(a5);
+
+    			t17 = claim_text(a5_nodes, "Pexels");
+    			a5_nodes.forEach(detach);
+    			t18 = claim_text(div4_nodes, "\r\n      ");
+
+    			h21 = claim_element(div4_nodes, "H2", { class: true }, false);
+    			var h21_nodes = children(h21);
+
+    			t19 = claim_text(h21_nodes, "CSS");
+    			h21_nodes.forEach(detach);
+    			t20 = claim_text(div4_nodes, "\r\n      ");
+
+    			a6 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a6_nodes = children(a6);
+
+    			t21 = claim_text(a6_nodes, "Animista - presets de animações");
+    			a6_nodes.forEach(detach);
+    			t22 = claim_text(div4_nodes, "\r\n      ");
+
+    			a7 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a7_nodes = children(a7);
+
+    			t23 = claim_text(a7_nodes, "Loading.io");
+    			a7_nodes.forEach(detach);
+    			t24 = claim_text(div4_nodes, "\r\n      ");
+
+    			a8 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a8_nodes = children(a8);
+
+    			t25 = claim_text(a8_nodes, "Coolors - cores, paletas");
+    			a8_nodes.forEach(detach);
+    			t26 = claim_text(div4_nodes, "\r\n      ");
+
+    			a9 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a9_nodes = children(a9);
+
+    			t27 = claim_text(a9_nodes, "Clippy - SVG formas geometricas");
+    			a9_nodes.forEach(detach);
+    			t28 = claim_text(div4_nodes, "\r\n      ");
+
+    			a10 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a10_nodes = children(a10);
+
+    			t29 = claim_text(a10_nodes, "SVG Backgrounds");
+    			a10_nodes.forEach(detach);
+    			t30 = claim_text(div4_nodes, "\r\n      ");
+
+    			a11 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a11_nodes = children(a11);
+
+    			t31 = claim_text(a11_nodes, "Triangulos backgrounds");
+    			a11_nodes.forEach(detach);
+    			t32 = claim_text(div4_nodes, "\r\n      ");
+
+    			a12 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a12_nodes = children(a12);
+
+    			t33 = claim_text(a12_nodes, "Keyframes.app");
+    			a12_nodes.forEach(detach);
+    			t34 = claim_text(div4_nodes, "\r\n      ");
+
+    			h22 = claim_element(div4_nodes, "H2", {}, false);
+    			var h22_nodes = children(h22);
+
+    			t35 = claim_text(h22_nodes, "Inspiração");
+    			h22_nodes.forEach(detach);
+    			t36 = claim_text(div4_nodes, "\r\n      ");
+
+    			a13 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a13_nodes = children(a13);
+
+    			t37 = claim_text(a13_nodes, "Evernote Design");
+    			a13_nodes.forEach(detach);
+    			t38 = claim_text(div4_nodes, "\r\n      ");
+
+    			a14 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a14_nodes = children(a14);
+
+    			t39 = claim_text(a14_nodes, "Webframe");
+    			a14_nodes.forEach(detach);
+    			t40 = claim_text(div4_nodes, "\r\n      ");
+
+    			a15 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a15_nodes = children(a15);
+
+    			t41 = claim_text(a15_nodes, "Dribble");
+    			a15_nodes.forEach(detach);
+    			t42 = claim_text(div4_nodes, "\r\n      ");
+
+    			a16 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a16_nodes = children(a16);
+
+    			t43 = claim_text(a16_nodes, "Dribble 2");
+    			a16_nodes.forEach(detach);
+    			div4_nodes.forEach(detach);
+    			t44 = claim_text(div10_nodes, "\r\n    ");
+
+    			div9 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div9_nodes = children(div9);
+
+    			h11 = claim_element(div9_nodes, "H1", {}, false);
+    			var h11_nodes = children(h11);
+
+    			t45 = claim_text(h11_nodes, "Work");
+    			h11_nodes.forEach(detach);
+    			t46 = claim_text(div9_nodes, "\r\n      ");
+
+    			h23 = claim_element(div9_nodes, "H2", { class: true }, false);
+    			var h23_nodes = children(h23);
+
+    			t47 = claim_text(h23_nodes, "Servidores");
+    			h23_nodes.forEach(detach);
+    			t48 = claim_text(div9_nodes, "\r\n      ");
+
+    			h30 = claim_element(div9_nodes, "H3", {}, false);
+    			var h30_nodes = children(h30);
+
+    			t49 = claim_text(h30_nodes, "Contabo  \r\n        ");
+
+    			b0 = claim_element(h30_nodes, "B", {}, false);
+    			var b0_nodes = children(b0);
+
+    			t50 = claim_text(b0_nodes, "6");
+    			b0_nodes.forEach(detach);
+    			h30_nodes.forEach(detach);
+    			t51 = claim_text(div9_nodes, "\r\n      ");
+
+    			div5 = claim_element(div9_nodes, "DIV", { class: true }, false);
+    			var div5_nodes = children(div5);
+
+    			a17 = claim_element(div5_nodes, "A", { href: true }, false);
+    			var a17_nodes = children(a17);
+
+    			t52 = claim_text(a17_nodes, "Rancher");
+    			a17_nodes.forEach(detach);
+    			t53 = claim_text(div5_nodes, "\r\n        ");
+
+    			a18 = claim_element(div5_nodes, "A", { href: true }, false);
+    			var a18_nodes = children(a18);
+
+    			t54 = claim_text(a18_nodes, "PMA");
+    			a18_nodes.forEach(detach);
+    			div5_nodes.forEach(detach);
+    			t55 = claim_text(div9_nodes, "\r\n      ");
+
+    			h31 = claim_element(div9_nodes, "H3", {}, false);
+    			var h31_nodes = children(h31);
+
+    			t56 = claim_text(h31_nodes, "Contabo  \r\n        ");
+
+    			b1 = claim_element(h31_nodes, "B", {}, false);
+    			var b1_nodes = children(b1);
+
+    			t57 = claim_text(b1_nodes, "8");
+    			b1_nodes.forEach(detach);
+    			h31_nodes.forEach(detach);
+    			t58 = claim_text(div9_nodes, "\r\n      ");
+
+    			div6 = claim_element(div9_nodes, "DIV", { class: true }, false);
+    			var div6_nodes = children(div6);
+
+    			a19 = claim_element(div6_nodes, "A", { href: true }, false);
+    			var a19_nodes = children(a19);
+
+    			t59 = claim_text(a19_nodes, "Rancher");
+    			a19_nodes.forEach(detach);
+    			t60 = claim_text(div6_nodes, "\r\n        ");
+
+    			a20 = claim_element(div6_nodes, "A", { href: true }, false);
+    			var a20_nodes = children(a20);
+
+    			t61 = claim_text(a20_nodes, "PMA");
+    			a20_nodes.forEach(detach);
+    			div6_nodes.forEach(detach);
+    			t62 = claim_text(div9_nodes, "\r\n      ");
+
+    			h32 = claim_element(div9_nodes, "H3", {}, false);
+    			var h32_nodes = children(h32);
+
+    			t63 = claim_text(h32_nodes, "Hetzner  \r\n        ");
+
+    			b2 = claim_element(h32_nodes, "B", {}, false);
+    			var b2_nodes = children(b2);
+
+    			b2_nodes.forEach(detach);
+    			h32_nodes.forEach(detach);
+    			t64 = claim_text(div9_nodes, "\r\n      ");
+
+    			div7 = claim_element(div9_nodes, "DIV", { class: true }, false);
+    			var div7_nodes = children(div7);
+
+    			a21 = claim_element(div7_nodes, "A", { href: true }, false);
+    			var a21_nodes = children(a21);
+
+    			t65 = claim_text(a21_nodes, "Rancher");
+    			a21_nodes.forEach(detach);
+    			t66 = claim_text(div7_nodes, "\r\n        ");
+
+    			a22 = claim_element(div7_nodes, "A", { href: true }, false);
+    			var a22_nodes = children(a22);
+
+    			t67 = claim_text(a22_nodes, "PMA");
+    			a22_nodes.forEach(detach);
+    			div7_nodes.forEach(detach);
+    			t68 = claim_text(div9_nodes, "\r\n      ");
+
+    			h33 = claim_element(div9_nodes, "H3", {}, false);
+    			var h33_nodes = children(h33);
+
+    			t69 = claim_text(h33_nodes, "Hetzner  2\r\n        ");
+
+    			b3 = claim_element(h33_nodes, "B", {}, false);
+    			var b3_nodes = children(b3);
+
+    			b3_nodes.forEach(detach);
+    			h33_nodes.forEach(detach);
+    			t70 = claim_text(div9_nodes, "\r\n      ");
+
+    			div8 = claim_element(div9_nodes, "DIV", { class: true }, false);
+    			var div8_nodes = children(div8);
+
+    			a23 = claim_element(div8_nodes, "A", { href: true }, false);
+    			var a23_nodes = children(a23);
+
+    			t71 = claim_text(a23_nodes, "Rancher");
+    			a23_nodes.forEach(detach);
+    			t72 = claim_text(div8_nodes, "\r\n        ");
+
+    			a24 = claim_element(div8_nodes, "A", { href: true }, false);
+    			var a24_nodes = children(a24);
+
+    			t73 = claim_text(a24_nodes, "PMA");
+    			a24_nodes.forEach(detach);
+    			div8_nodes.forEach(detach);
+    			t74 = claim_text(div9_nodes, "\r\n\r\n      ");
+
+    			h24 = claim_element(div9_nodes, "H2", { class: true }, false);
+    			var h24_nodes = children(h24);
+
+    			t75 = claim_text(h24_nodes, "Github");
+    			h24_nodes.forEach(detach);
+    			t76 = claim_text(div9_nodes, "\r\n      ");
+
+    			a25 = claim_element(div9_nodes, "A", { href: true }, false);
+    			var a25_nodes = children(a25);
+
+    			t77 = claim_text(a25_nodes, "Github relato");
+    			a25_nodes.forEach(detach);
+    			t78 = claim_text(div9_nodes, "\r\n      ");
+
+    			h25 = claim_element(div9_nodes, "H2", { class: true }, false);
+    			var h25_nodes = children(h25);
+
+    			t79 = claim_text(h25_nodes, "Mautic");
+    			h25_nodes.forEach(detach);
+    			t80 = claim_text(div9_nodes, "\r\n      ");
+
+    			a26 = claim_element(div9_nodes, "A", { href: true }, false);
+    			var a26_nodes = children(a26);
+
+    			t81 = claim_text(a26_nodes, "Guia Powertic");
+    			a26_nodes.forEach(detach);
+    			t82 = claim_text(div9_nodes, "\r\n      ");
+
+    			a27 = claim_element(div9_nodes, "A", { href: true }, false);
+    			var a27_nodes = children(a27);
+
+    			t83 = claim_text(a27_nodes, "Luizeof");
+    			a27_nodes.forEach(detach);
+    			div9_nodes.forEach(detach);
+    			div10_nodes.forEach(detach);
+    			t84 = claim_text(div17_nodes, "\r\n  ");
+
+    			div16 = claim_element(div17_nodes, "DIV", { class: true }, false);
+    			var div16_nodes = children(div16);
+
+    			div11 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div11_nodes = children(div11);
+
+    			t85 = claim_text(div11_nodes, "424964");
+    			div11_nodes.forEach(detach);
+    			t86 = claim_text(div16_nodes, "\r\n    ");
+
+    			div12 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div12_nodes = children(div12);
+
+    			t87 = claim_text(div12_nodes, "1A1423");
+    			div12_nodes.forEach(detach);
+    			t88 = claim_text(div16_nodes, "\r\n    ");
+
+    			div13 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div13_nodes = children(div13);
+
+    			t89 = claim_text(div13_nodes, "E26D5A");
+    			div13_nodes.forEach(detach);
+    			t90 = claim_text(div16_nodes, "\r\n    ");
+
+    			div14 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div14_nodes = children(div14);
+
+    			t91 = claim_text(div14_nodes, "FFC857");
+    			div14_nodes.forEach(detach);
+    			t92 = claim_text(div16_nodes, "\r\n    ");
+
+    			div15 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div15_nodes = children(div15);
+
+    			t93 = claim_text(div15_nodes, "1F2041");
+    			div15_nodes.forEach(detach);
+    			div16_nodes.forEach(detach);
+    			div17_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			add_location(div0, file$2, 75, 4, 2039);
+    			div1.className = "sidebar esquerda";
+    			add_location(div1, file$2, 74, 2, 2003);
+    			div2.className = "nested";
+    			add_location(div2, file$2, 94, 12, 2458);
+    			div3.className = "colunas nested";
+    			add_location(div3, file$2, 82, 4, 2165);
+    			add_location(h10, file$2, 111, 6, 2985);
+    			img0.src = "images/icons/4chan.png";
+    			img0.alt = "";
+    			add_location(img0, file$2, 114, 8, 3072);
+    			a0.href = "https://boards.4chan.org/pol/";
+    			add_location(a0, file$2, 112, 6, 3007);
+    			img1.src = "images/icons/4chan.png";
+    			img1.alt = "";
+    			add_location(img1, file$2, 118, 8, 3197);
+    			a1.href = "https://boards.4chan.org/wg/";
+    			add_location(a1, file$2, 116, 6, 3134);
+    			img2.src = "images/icons/4chan.png";
+    			img2.alt = "";
+    			add_location(img2, file$2, 122, 8, 3323);
+    			a2.href = "https://boards.4chan.org/gd/";
+    			add_location(a2, file$2, 120, 6, 3260);
+    			a3.href = "https://app.asana.com/";
+    			add_location(a3, file$2, 124, 6, 3386);
+    			add_location(h20, file$2, 125, 6, 3436);
+    			a4.href = "https://pxhere.com/pt/";
+    			add_location(a4, file$2, 126, 6, 3469);
+    			a5.href = "https://www.pexels.com/";
+    			add_location(a5, file$2, 127, 6, 3520);
+    			h21.className = "tracking-in-contract";
+    			add_location(h21, file$2, 128, 6, 3572);
+    			a6.href = "http://animista.net/play/background/ken-burns/kenburns-bottom-left";
+    			add_location(a6, file$2, 129, 6, 3621);
+    			a7.href = "https://loading.io/";
+    			add_location(a7, file$2, 133, 6, 3768);
+    			a8.href = "https://coolors.co/424964-1a1423-e26d5a-ffc857-1f2041";
+    			add_location(a8, file$2, 134, 6, 3820);
+    			a9.href = "https://bennettfeely.com/clippy/";
+    			add_location(a9, file$2, 137, 6, 3938);
+    			a10.href = "https://www.svgbackgrounds.com/";
+    			add_location(a10, file$2, 140, 6, 4042);
+    			a11.href = "http://alssndro.github.io/trianglify-background-generator/";
+    			add_location(a11, file$2, 141, 6, 4111);
+    			a12.href = "https://keyframes.app/editor/";
+    			add_location(a12, file$2, 144, 6, 4232);
+    			add_location(h22, file$2, 145, 6, 4297);
+    			a13.href = "https://www.evernote.design/";
+    			add_location(a13, file$2, 146, 6, 4324);
+    			a14.href = "https://webframe.xyz/";
+    			add_location(a14, file$2, 147, 6, 4390);
+    			a15.href = "https://dribbble.com/fantasy";
+    			add_location(a15, file$2, 148, 6, 4442);
+    			a16.href = "https://dribbble.com/fantasy";
+    			add_location(a16, file$2, 149, 6, 4500);
+    			div4.className = "colunas";
+    			add_location(div4, file$2, 110, 4, 2956);
+    			add_location(h11, file$2, 152, 6, 4599);
+    			h23.className = "tracking-in-contract";
+    			add_location(h23, file$2, 153, 6, 4620);
+    			add_location(b0, file$2, 156, 8, 4709);
+    			add_location(h30, file$2, 154, 6, 4676);
+    			a17.href = "http://contabo6.oncloud.net.br:10001/env/1a5/apps/stacks";
+    			add_location(a17, file$2, 159, 8, 4768);
+    			a18.href = "http://phpmyadmin6.3lados.com.br/";
+    			add_location(a18, file$2, 162, 8, 4878);
+    			div5.className = "nested";
+    			add_location(div5, file$2, 158, 6, 4738);
+    			add_location(b1, file$2, 166, 8, 4984);
+    			add_location(h31, file$2, 164, 6, 4951);
+    			a19.href = "http://contabo8.3lados.com.br:10001/";
+    			add_location(a19, file$2, 169, 8, 5043);
+    			a20.href = "http://phpmyadmin8.3lados.com.br/";
+    			add_location(a20, file$2, 170, 8, 5111);
+    			div6.className = "nested";
+    			add_location(div6, file$2, 168, 6, 5013);
+    			add_location(b2, file$2, 174, 8, 5217);
+    			add_location(h32, file$2, 172, 6, 5184);
+    			a21.href = "http://116.203.114.19:10001";
+    			add_location(a21, file$2, 177, 8, 5273);
+    			a22.href = "http://phpmyadminhetzner.3lados.com.br";
+    			add_location(a22, file$2, 178, 8, 5332);
+    			div7.className = "nested";
+    			add_location(div7, file$2, 176, 6, 5243);
+    			add_location(b3, file$2, 182, 8, 5444);
+    			add_location(h33, file$2, 180, 6, 5410);
+    			a23.href = "http://hetzner2.3lados.com.br:10001/";
+    			add_location(a23, file$2, 185, 8, 5500);
+    			a24.href = "http://pmahetzner2.3lados.com.br/";
+    			add_location(a24, file$2, 186, 8, 5568);
+    			div8.className = "nested";
+    			add_location(div8, file$2, 184, 6, 5470);
+    			h24.className = "tracking-in-contract";
+    			add_location(h24, file$2, 189, 6, 5643);
+    			a25.href = "https://github.com/RELATO";
+    			add_location(a25, file$2, 190, 6, 5695);
+    			h25.className = "tracking-in-contract";
+    			add_location(h25, file$2, 191, 6, 5756);
+    			a26.href = "https://powertic.com/pt-br/guia-para-iniciantes-em-mautic/";
+    			add_location(a26, file$2, 192, 6, 5808);
+    			a27.href = "https://luizeof.com.br/";
+    			add_location(a27, file$2, 195, 6, 5920);
+    			div9.className = "colunas";
+    			add_location(div9, file$2, 151, 4, 4570);
+    			div10.className = "centro";
+    			add_location(div10, file$2, 80, 2, 2137);
+    			set_style(div11, "background-color", "#424964");
+    			add_location(div11, file$2, 199, 4, 6026);
+    			set_style(div12, "background-color", "#1A1423");
+    			add_location(div12, file$2, 200, 4, 6083);
+    			set_style(div13, "background-color", "#E26D5A");
+    			add_location(div13, file$2, 201, 4, 6140);
+    			set_style(div14, "background-color", "#FFC857");
+    			add_location(div14, file$2, 202, 4, 6197);
+    			set_style(div15, "background-color", "#1F2041");
+    			add_location(div15, file$2, 203, 4, 6254);
+    			div16.className = "sidebar direita";
+    			add_location(div16, file$2, 198, 2, 5991);
+    			div17.className = "main";
+    			add_location(div17, file$2, 73, 0, 1981);
     		},
 
     		m: function mount(target, anchor) {
-    			mount_component(editor, target, anchor);
-    			insert(target, t0, anchor);
-    			insert(target, div21, anchor);
-    			append(div21, div1);
+    			insert(target, div17, anchor);
+    			append(div17, div1);
     			append(div1, div0);
-    			append(div0, img0);
-    			append(div21, t1);
-    			append(div21, div14);
-    			append(div14, div7);
-    			append(div7, ul);
-    			append(ul, li0);
-    			append(li0, a0);
-    			append(li0, t3);
-    			append(li0, div3);
+    			append(div17, t0);
+    			append(div17, div10);
+    			append(div10, div3);
+    			mount_component(editor, div3, null);
+    			append(div3, t1);
     			append(div3, div2);
 
-    			for (var i = 0; i < each_blocks_3.length; i += 1) {
-    				each_blocks_3[i].m(div2, null);
-    			}
-
-    			append(ul, t4);
-    			append(ul, li1);
-    			append(li1, a1);
-    			append(li1, t6);
-    			append(li1, div6);
-    			append(div6, h20);
-    			append(div6, t8);
-    			append(div6, fieldset);
-    			append(fieldset, div4);
-    			append(div4, input0);
-
-    			input0.value = ctx.nomesite;
-
-    			append(div4, t9);
-    			append(div4, input1);
-
-    			input1.value = ctx.urlsite;
-
-    			append(fieldset, t10);
-    			append(fieldset, div5);
-    			append(div5, select);
-
-    			for (var i = 0; i < each_blocks_2.length; i += 1) {
-    				each_blocks_2[i].m(select, null);
-    			}
-
-    			append(div6, t11);
-    			append(div6, button);
-    			append(div6, t13);
-
-    			for (var i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(div6, null);
-    			}
-
-    			append(div6, t14);
-    			append(div6, h21);
-    			append(div6, t16);
-
     			for (var i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div6, null);
+    				each_blocks[i].m(div2, null);
     			}
 
-    			append(div14, t17);
-    			append(div14, div8);
-    			append(div8, h10);
-    			append(div8, t19);
-    			append(div8, a2);
-    			append(a2, t20);
-    			append(a2, img1);
-    			append(div8, t21);
-    			append(div8, a3);
-    			append(a3, t22);
-    			append(a3, img2);
-    			append(div8, t23);
-    			append(div8, a4);
-    			append(a4, t24);
-    			append(a4, img3);
-    			append(div8, t25);
-    			append(div8, a5);
-    			append(div8, t27);
-    			append(div8, h22);
-    			append(div8, t29);
-    			append(div8, a6);
-    			append(div8, t31);
-    			append(div8, a7);
-    			append(div8, t33);
-    			append(div8, h23);
-    			append(div8, t35);
-    			append(div8, a8);
-    			append(div8, t37);
-    			append(div8, a9);
-    			append(div8, t39);
-    			append(div8, a10);
-    			append(div8, t41);
-    			append(div8, a11);
-    			append(div8, t43);
-    			append(div8, a12);
-    			append(div8, t45);
-    			append(div8, a13);
-    			append(div8, t47);
-    			append(div8, a14);
-    			append(div8, t49);
-    			append(div8, h24);
-    			append(div8, t51);
-    			append(div8, a15);
-    			append(div8, t53);
-    			append(div8, a16);
-    			append(div8, t55);
-    			append(div8, a17);
-    			append(div8, t57);
-    			append(div8, a18);
-    			append(div14, t59);
-    			append(div14, div13);
-    			append(div13, h11);
-    			append(div13, t61);
-    			append(div13, h25);
-    			append(div13, t63);
-    			append(div13, h30);
-    			append(h30, t64);
+    			append(div10, t2);
+    			append(div10, div4);
+    			append(div4, h10);
+    			append(h10, t3);
+    			append(div4, t4);
+    			append(div4, a0);
+    			append(a0, t5);
+    			append(a0, img0);
+    			append(div4, t6);
+    			append(div4, a1);
+    			append(a1, t7);
+    			append(a1, img1);
+    			append(div4, t8);
+    			append(div4, a2);
+    			append(a2, t9);
+    			append(a2, img2);
+    			append(div4, t10);
+    			append(div4, a3);
+    			append(a3, t11);
+    			append(div4, t12);
+    			append(div4, h20);
+    			append(h20, t13);
+    			append(div4, t14);
+    			append(div4, a4);
+    			append(a4, t15);
+    			append(div4, t16);
+    			append(div4, a5);
+    			append(a5, t17);
+    			append(div4, t18);
+    			append(div4, h21);
+    			append(h21, t19);
+    			append(div4, t20);
+    			append(div4, a6);
+    			append(a6, t21);
+    			append(div4, t22);
+    			append(div4, a7);
+    			append(a7, t23);
+    			append(div4, t24);
+    			append(div4, a8);
+    			append(a8, t25);
+    			append(div4, t26);
+    			append(div4, a9);
+    			append(a9, t27);
+    			append(div4, t28);
+    			append(div4, a10);
+    			append(a10, t29);
+    			append(div4, t30);
+    			append(div4, a11);
+    			append(a11, t31);
+    			append(div4, t32);
+    			append(div4, a12);
+    			append(a12, t33);
+    			append(div4, t34);
+    			append(div4, h22);
+    			append(h22, t35);
+    			append(div4, t36);
+    			append(div4, a13);
+    			append(a13, t37);
+    			append(div4, t38);
+    			append(div4, a14);
+    			append(a14, t39);
+    			append(div4, t40);
+    			append(div4, a15);
+    			append(a15, t41);
+    			append(div4, t42);
+    			append(div4, a16);
+    			append(a16, t43);
+    			append(div10, t44);
+    			append(div10, div9);
+    			append(div9, h11);
+    			append(h11, t45);
+    			append(div9, t46);
+    			append(div9, h23);
+    			append(h23, t47);
+    			append(div9, t48);
+    			append(div9, h30);
+    			append(h30, t49);
     			append(h30, b0);
-    			append(div13, t66);
-    			append(div13, div9);
-    			append(div9, a19);
-    			append(div9, t68);
-    			append(div9, a20);
-    			append(div13, t70);
-    			append(div13, h31);
-    			append(h31, t71);
+    			append(b0, t50);
+    			append(div9, t51);
+    			append(div9, div5);
+    			append(div5, a17);
+    			append(a17, t52);
+    			append(div5, t53);
+    			append(div5, a18);
+    			append(a18, t54);
+    			append(div9, t55);
+    			append(div9, h31);
+    			append(h31, t56);
     			append(h31, b1);
-    			append(div13, t73);
-    			append(div13, div10);
-    			append(div10, a21);
-    			append(div10, t75);
-    			append(div10, a22);
-    			append(div13, t77);
-    			append(div13, h32);
-    			append(h32, t78);
+    			append(b1, t57);
+    			append(div9, t58);
+    			append(div9, div6);
+    			append(div6, a19);
+    			append(a19, t59);
+    			append(div6, t60);
+    			append(div6, a20);
+    			append(a20, t61);
+    			append(div9, t62);
+    			append(div9, h32);
+    			append(h32, t63);
     			append(h32, b2);
-    			append(div13, t79);
-    			append(div13, div11);
-    			append(div11, a23);
-    			append(div11, t81);
-    			append(div11, a24);
-    			append(div13, t83);
-    			append(div13, h33);
-    			append(h33, t84);
+    			append(div9, t64);
+    			append(div9, div7);
+    			append(div7, a21);
+    			append(a21, t65);
+    			append(div7, t66);
+    			append(div7, a22);
+    			append(a22, t67);
+    			append(div9, t68);
+    			append(div9, h33);
+    			append(h33, t69);
     			append(h33, b3);
-    			append(div13, t85);
-    			append(div13, div12);
-    			append(div12, a25);
+    			append(div9, t70);
+    			append(div9, div8);
+    			append(div8, a23);
+    			append(a23, t71);
+    			append(div8, t72);
+    			append(div8, a24);
+    			append(a24, t73);
+    			append(div9, t74);
+    			append(div9, h24);
+    			append(h24, t75);
+    			append(div9, t76);
+    			append(div9, a25);
+    			append(a25, t77);
+    			append(div9, t78);
+    			append(div9, h25);
+    			append(h25, t79);
+    			append(div9, t80);
+    			append(div9, a26);
+    			append(a26, t81);
+    			append(div9, t82);
+    			append(div9, a27);
+    			append(a27, t83);
+    			append(div17, t84);
+    			append(div17, div16);
+    			append(div16, div11);
+    			append(div11, t85);
+    			append(div16, t86);
+    			append(div16, div12);
     			append(div12, t87);
-    			append(div12, a26);
+    			append(div16, t88);
+    			append(div16, div13);
     			append(div13, t89);
-    			append(div13, h26);
-    			append(div13, t91);
-    			append(div13, a27);
-    			append(div13, t93);
-    			append(div13, h27);
-    			append(div13, t95);
-    			append(div13, a28);
-    			append(div13, t97);
-    			append(div13, a29);
-    			append(div21, t99);
-    			append(div21, div20);
-    			append(div20, div15);
-    			append(div20, t101);
-    			append(div20, div16);
-    			append(div20, t103);
-    			append(div20, div17);
-    			append(div20, t105);
-    			append(div20, div18);
-    			append(div20, t107);
-    			append(div20, div19);
+    			append(div16, t90);
+    			append(div16, div14);
+    			append(div14, t91);
+    			append(div16, t92);
+    			append(div16, div15);
+    			append(div15, t93);
     			current = true;
     		},
 
@@ -1997,75 +3631,7 @@ var app = (function () {
     			editor.$set(editor_changes);
 
     			if (changed.itemsTab1) {
-    				each_value_3 = ctx.itemsTab1;
-
-    				for (var i = 0; i < each_value_3.length; i += 1) {
-    					const child_ctx = get_each_context_3(ctx, each_value_3, i);
-
-    					if (each_blocks_3[i]) {
-    						each_blocks_3[i].p(changed, child_ctx);
-    						each_blocks_3[i].i(1);
-    					} else {
-    						each_blocks_3[i] = create_each_block_3(child_ctx);
-    						each_blocks_3[i].c();
-    						each_blocks_3[i].i(1);
-    						each_blocks_3[i].m(div2, null);
-    					}
-    				}
-
-    				group_outros();
-    				for (; i < each_blocks_3.length; i += 1) outro_block(i, 1, 1);
-    				check_outros();
-    			}
-
-    			if (changed.nomesite && (input0.value !== ctx.nomesite)) input0.value = ctx.nomesite;
-    			if (changed.urlsite && (input1.value !== ctx.urlsite)) input1.value = ctx.urlsite;
-
-    			if (changed.servidores) {
-    				each_value_2 = ctx.servidores;
-
-    				for (var i = 0; i < each_value_2.length; i += 1) {
-    					const child_ctx = get_each_context_2(ctx, each_value_2, i);
-
-    					if (each_blocks_2[i]) {
-    						each_blocks_2[i].p(changed, child_ctx);
-    					} else {
-    						each_blocks_2[i] = create_each_block_2(child_ctx);
-    						each_blocks_2[i].c();
-    						each_blocks_2[i].m(select, null);
-    					}
-    				}
-
-    				for (; i < each_blocks_2.length; i += 1) {
-    					each_blocks_2[i].d(1);
-    				}
-    				each_blocks_2.length = each_value_2.length;
-    			}
-
-    			if (changed.sites3lados || changed.removeSite) {
-    				each_value_1 = ctx.sites3lados;
-
-    				for (var i = 0; i < each_value_1.length; i += 1) {
-    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
-
-    					if (each_blocks_1[i]) {
-    						each_blocks_1[i].p(changed, child_ctx);
-    						each_blocks_1[i].i(1);
-    					} else {
-    						each_blocks_1[i] = create_each_block_1(child_ctx);
-    						each_blocks_1[i].c();
-    						each_blocks_1[i].i(1);
-    						each_blocks_1[i].m(div6, t14);
-    					}
-    				}
-
-    				group_outros();
-    				for (; i < each_blocks_1.length; i += 1) outro_block_1(i, 1, 1);
-    				check_outros();
-    			}
-
-    			if (changed.servidores) {
-    				each_value = ctx.servidores;
+    				each_value = ctx.itemsTab1;
 
     				for (var i = 0; i < each_value.length; i += 1) {
     					const child_ctx = get_each_context(ctx, each_value, i);
@@ -2077,12 +3643,12 @@ var app = (function () {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].i(1);
-    						each_blocks[i].m(div6, null);
+    						each_blocks[i].m(div2, null);
     					}
     				}
 
     				group_outros();
-    				for (; i < each_blocks.length; i += 1) outro_block_2(i, 1, 1);
+    				for (; i < each_blocks.length; i += 1) outro_block(i, 1, 1);
     				check_outros();
     			}
     		},
@@ -2090,10 +3656,6 @@ var app = (function () {
     		i: function intro(local) {
     			if (current) return;
     			editor.$$.fragment.i(local);
-
-    			for (var i = 0; i < each_value_3.length; i += 1) each_blocks_3[i].i();
-
-    			for (var i = 0; i < each_value_1.length; i += 1) each_blocks_1[i].i();
 
     			for (var i = 0; i < each_value.length; i += 1) each_blocks[i].i();
 
@@ -2103,126 +3665,30 @@ var app = (function () {
     		o: function outro(local) {
     			editor.$$.fragment.o(local);
 
-    			each_blocks_3 = each_blocks_3.filter(Boolean);
-    			for (let i = 0; i < each_blocks_3.length; i += 1) outro_block(i, 0, 0);
-
-    			each_blocks_1 = each_blocks_1.filter(Boolean);
-    			for (let i = 0; i < each_blocks_1.length; i += 1) outro_block_1(i, 0, 0);
-
     			each_blocks = each_blocks.filter(Boolean);
-    			for (let i = 0; i < each_blocks.length; i += 1) outro_block_2(i, 0, 0);
+    			for (let i = 0; i < each_blocks.length; i += 1) outro_block(i, 0, 0);
 
     			current = false;
     		},
 
     		d: function destroy(detaching) {
-    			editor.$destroy(detaching);
-
     			if (detaching) {
-    				detach(t0);
-    				detach(div21);
+    				detach(div17);
     			}
 
-    			destroy_each(each_blocks_3, detaching);
-
-    			destroy_each(each_blocks_2, detaching);
-
-    			destroy_each(each_blocks_1, detaching);
+    			editor.$destroy();
 
     			destroy_each(each_blocks, detaching);
-
-    			run_all(dispose);
     		}
     	};
     }
 
-    let URL = "teste.3lados.com.br";
-
-    let tokenteste3lados = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC90ZXN0ZS4zbGFkb3MuY29tLmJyIiwiaWF0IjoxNTYxNzA5NTQzLCJuYmYiOjE1NjE3MDk1NDMsImV4cCI6MTU2MjMxNDM0MywiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMSJ9fX0.YkbOWbH-NhTJRaOip3YeHpAnXvERd4gp3XJ4-sZXe-M";
-
-    let excerpt = "resumo";
-
-    function removeSite (e) {
-        let id = e.target.name;
-        var r = confirm("Dejesa deletar o site?");
-        if (r == true) {
-            var post = new XMLHttpRequest();
-            post.open("DELETE", "http://"+ URL +"/wp-json/wp/v2/sites/"+id);
-            post.setRequestHeader("Authorization", "Bearer "+tokenteste3lados);
-            post.send();
-            post.onreadystatechange = function() {
-              console.log(post);
-              if (post.readyState == 4) {
-                  if (post.status == 201) {
-                      location.reload();
-                  } else {
-                      alert("Error - try again.");
-                  }
-              }
-          };
-        }
-          
-      }
-
-    function instance$1($$self, $$props, $$invalidate) {
-
-      let sites3lados = [];
-      let servidores = [];
-      let nomesite = "";
-      let urlsite = "";
+    function instance$4($$self, $$props, $$invalidate) {
 
       let link = "url";
       let imagem = "images/icons/youtube.svg";
       let nome = "Nome";
       let id = 0;
-
-        onMount(async () => {
-          // const res = await fetch(`https://eurovinhos.ml/wc-api/v3/products/?per_page=20&consumer_key=ck_a232b308626bec11aae453b858b2ef36090c4b5f&consumer_secret=cs_18c14d587c2bd007f518fdb5e8c04283c7bb4956`);
-          // products = await res.json();
-          $$invalidate('sites3lados', sites3lados = await fetch(
-            `http://`+ URL +`/wp-json/wp/v2/sites`
-          ).then(r => r.json()));
-          $$invalidate('servidores', servidores = await fetch(
-            `http://`+ URL +`/wp-json/wp/v2/servidores`
-          ).then(r => r.json()));
-          // servidores = await fetch(
-          //   `https://jsonplaceholder.typicode.com/photos?_limit=20`
-          // ).then(r => r.json());
-          console.log(servidores);
-        });
-
-        function addSite () {
-            var ourPostData = {
-                "title": nomesite,
-                "content": urlsite,
-                "status": "publish",
-                "excerpt": excerpt
-            };
-            var createPost = new XMLHttpRequest();
-            createPost.open("POST", "http://"+ URL +"/wp-json/wp/v2/sites");
-            createPost.setRequestHeader("Authorization", "Bearer "+tokenteste3lados);
-            // createPost.setRequestHeader("X-WP-Nonce", nonce.nonce);
-            createPost.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-            // createPost.setRequestHeader("Accept", "*/*");
-            // createPost.setRequestHeader("Access-Control-Allow-Headers", "*");
-            // createPost.setRequestHeader("Access-Control-Allow-Origin", "*");
-            // createPost.setRequestHeader("Cache-Control", "no-cache");
-            // createPost.setRequestHeader("Origin", "http://localhost:5000/");
-            createPost.send(JSON.stringify(ourPostData));
-            createPost.onreadystatechange = function() {
-                console.log(createPost);
-                if (createPost.readyState == 4) {
-                    if (createPost.status == 201) {
-                        $$invalidate('nomesite', nomesite = '');
-                        $$invalidate('urlsite', urlsite = '');
-                        location.reload();
-                    } else {
-                        alert("Error - try again.");
-                    }
-                }
-            };
-
-        }
 
       let itemsTab1 = [
         {
@@ -2273,19 +3739,9 @@ var app = (function () {
 
       let selecionado = false;
 
-    	function input_change_handler({ item, each_value_3, item_index }) {
-    		each_value_3[item_index].selected = this.checked;
+    	function input_change_handler({ item, each_value, item_index }) {
+    		each_value[item_index].selected = this.checked;
     		$$invalidate('itemsTab1', itemsTab1);
-    	}
-
-    	function input0_input_handler() {
-    		nomesite = this.value;
-    		$$invalidate('nomesite', nomesite);
-    	}
-
-    	function input1_input_handler() {
-    		urlsite = this.value;
-    		$$invalidate('urlsite', urlsite);
     	}
 
     	$$self.$$.update = ($$dirty = { itemsTab1: 1 }) => {
@@ -2299,35 +3755,1249 @@ var app = (function () {
     	};
 
     	return {
-    		sites3lados,
-    		servidores,
-    		nomesite,
-    		urlsite,
     		link,
     		imagem,
     		nome,
     		id,
-    		addSite,
     		itemsTab1,
     		remove,
     		salvar,
     		editar,
     		selecionado,
-    		input_change_handler,
-    		input0_input_handler,
-    		input1_input_handler
+    		input_change_handler
     	};
+    }
+
+    class Home extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, []);
+    	}
+    }
+
+    /* src\Sites.svelte generated by Svelte v3.5.1 */
+
+    const file$3 = "src\\Sites.svelte";
+
+    function get_each_context_1(ctx, list, i) {
+    	const child_ctx = Object.create(ctx);
+    	child_ctx.site = list[i];
+    	return child_ctx;
+    }
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = Object.create(ctx);
+    	child_ctx.server = list[i];
+    	return child_ctx;
+    }
+
+    function get_each_context_2(ctx, list, i) {
+    	const child_ctx = Object.create(ctx);
+    	child_ctx.server = list[i];
+    	return child_ctx;
+    }
+
+    // (161:24) {#each servidores as server}
+    function create_each_block_2(ctx) {
+    	var option, t_value = ctx.server.name, t, option_value_value;
+
+    	return {
+    		c: function create() {
+    			option = element("option");
+    			t = text(t_value);
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			option = claim_element(nodes, "OPTION", { value: true }, false);
+    			var option_nodes = children(option);
+
+    			t = claim_text(option_nodes, t_value);
+    			option_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			option.__value = option_value_value = ctx.server.id;
+    			option.value = option.__value;
+    			add_location(option, file$3, 161, 24, 5210);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, option, anchor);
+    			append(option, t);
+    		},
+
+    		p: function update(changed, ctx) {
+    			if ((changed.servidores) && t_value !== (t_value = ctx.server.name)) {
+    				set_data(t, t_value);
+    			}
+
+    			if ((changed.servidores) && option_value_value !== (option_value_value = ctx.server.id)) {
+    				option.__value = option_value_value;
+    			}
+
+    			option.value = option.__value;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(option);
+    			}
+    		}
+    	};
+    }
+
+    // (180:14) {#if site.servidores == server.id}
+    function create_if_block$2(ctx) {
+    	var div, a0, t0_value = ctx.site.title.rendered, t0, t1, t2_value = ctx.server.name, t2, t3, a1, t4, a1_name_value, div_transition, current, dispose;
+
+    	return {
+    		c: function create() {
+    			div = element("div");
+    			a0 = element("a");
+    			t0 = text(t0_value);
+    			t1 = text(" / ");
+    			t2 = text(t2_value);
+    			t3 = space();
+    			a1 = element("a");
+    			t4 = text("x");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			div = claim_element(nodes, "DIV", { class: true }, false);
+    			var div_nodes = children(div);
+
+    			a0 = claim_element(div_nodes, "A", { href: true, class: true }, false);
+    			var a0_nodes = children(a0);
+
+    			t0 = claim_text(a0_nodes, t0_value);
+    			t1 = claim_text(a0_nodes, " / ");
+    			t2 = claim_text(a0_nodes, t2_value);
+    			a0_nodes.forEach(detach);
+    			t3 = claim_text(div_nodes, "\r\n                  ");
+
+    			a1 = claim_element(div_nodes, "A", { href: true, name: true, class: true }, false);
+    			var a1_nodes = children(a1);
+
+    			t4 = claim_text(a1_nodes, "x");
+    			a1_nodes.forEach(detach);
+    			div_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			a0.href = "#";
+    			a0.className = "svelte-11atozw";
+    			add_location(a0, file$3, 181, 18, 5935);
+    			a1.href = "#";
+    			attr(a1, "name", a1_name_value = ctx.site.id);
+    			a1.className = "svelte-11atozw";
+    			add_location(a1, file$3, 182, 18, 6009);
+    			div.className = "listasites svelte-11atozw";
+    			add_location(div, file$3, 180, 16, 5874);
+    			dispose = listen(a1, "click", removeSite);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, a0);
+    			append(a0, t0);
+    			append(a0, t1);
+    			append(a0, t2);
+    			append(div, t3);
+    			append(div, a1);
+    			append(a1, t4);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if ((!current || changed.sites3lados) && t0_value !== (t0_value = ctx.site.title.rendered)) {
+    				set_data(t0, t0_value);
+    			}
+
+    			if ((!current || changed.servidores) && t2_value !== (t2_value = ctx.server.name)) {
+    				set_data(t2, t2_value);
+    			}
+
+    			if ((!current || changed.sites3lados) && a1_name_value !== (a1_name_value = ctx.site.id)) {
+    				attr(a1, "name", a1_name_value);
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			add_render_callback(() => {
+    				if (!div_transition) div_transition = create_bidirectional_transition(div, slide, {}, true);
+    				div_transition.run(1);
+    			});
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (!div_transition) div_transition = create_bidirectional_transition(div, slide, {}, false);
+    			div_transition.run(0);
+
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(div);
+    				if (div_transition) div_transition.end();
+    			}
+
+    			dispose();
+    		}
+    	};
+    }
+
+    // (179:12) {#each sites3lados as site}
+    function create_each_block_1(ctx) {
+    	var if_block_anchor, current;
+
+    	var if_block = (ctx.site.servidores == ctx.server.id) && create_if_block$2(ctx);
+
+    	return {
+    		c: function create() {
+    			if (if_block) if_block.c();
+    			if_block_anchor = empty();
+    		},
+
+    		l: function claim(nodes) {
+    			if (if_block) if_block.l(nodes);
+    			if_block_anchor = empty();
+    		},
+
+    		m: function mount(target, anchor) {
+    			if (if_block) if_block.m(target, anchor);
+    			insert(target, if_block_anchor, anchor);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if (ctx.site.servidores == ctx.server.id) {
+    				if (if_block) {
+    					if_block.p(changed, ctx);
+    					if_block.i(1);
+    				} else {
+    					if_block = create_if_block$2(ctx);
+    					if_block.c();
+    					if_block.i(1);
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+    				on_outro(() => {
+    					if_block.d(1);
+    					if_block = null;
+    				});
+
+    				if_block.o(1);
+    				check_outros();
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (if_block) if_block.i();
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (if_block) if_block.o();
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (if_block) if_block.d(detaching);
+
+    			if (detaching) {
+    				detach(if_block_anchor);
+    			}
+    		}
+    	};
+    }
+
+    // (176:8) {#each servidores as server}
+    function create_each_block$1(ctx) {
+    	var div, h2, t0_value = ctx.server.name, t0, t1, t2, current;
+
+    	var each_value_1 = ctx.sites3lados;
+
+    	var each_blocks = [];
+
+    	for (var i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	}
+
+    	function outro_block(i, detaching, local) {
+    		if (each_blocks[i]) {
+    			if (detaching) {
+    				on_outro(() => {
+    					each_blocks[i].d(detaching);
+    					each_blocks[i] = null;
+    				});
+    			}
+
+    			each_blocks[i].o(local);
+    		}
+    	}
+
+    	return {
+    		c: function create() {
+    			div = element("div");
+    			h2 = element("h2");
+    			t0 = text(t0_value);
+    			t1 = space();
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t2 = space();
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			div = claim_element(nodes, "DIV", { class: true }, false);
+    			var div_nodes = children(div);
+
+    			h2 = claim_element(div_nodes, "H2", {}, false);
+    			var h2_nodes = children(h2);
+
+    			t0 = claim_text(h2_nodes, t0_value);
+    			h2_nodes.forEach(detach);
+    			t1 = claim_text(div_nodes, "\r\n            ");
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].l(div_nodes);
+    			}
+
+    			t2 = claim_text(div_nodes, "\r\n          ");
+    			div_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			add_location(h2, file$3, 177, 12, 5743);
+    			div.className = "servers svelte-11atozw";
+    			add_location(div, file$3, 176, 10, 5708);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, h2);
+    			append(h2, t0);
+    			append(div, t1);
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div, null);
+    			}
+
+    			append(div, t2);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if ((!current || changed.servidores) && t0_value !== (t0_value = ctx.server.name)) {
+    				set_data(t0, t0_value);
+    			}
+
+    			if (changed.sites3lados || changed.servidores || changed.removeSite) {
+    				each_value_1 = ctx.sites3lados;
+
+    				for (var i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(changed, child_ctx);
+    						each_blocks[i].i(1);
+    					} else {
+    						each_blocks[i] = create_each_block_1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].i(1);
+    						each_blocks[i].m(div, t2);
+    					}
+    				}
+
+    				group_outros();
+    				for (; i < each_blocks.length; i += 1) outro_block(i, 1, 1);
+    				check_outros();
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			for (var i = 0; i < each_value_1.length; i += 1) each_blocks[i].i();
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			each_blocks = each_blocks.filter(Boolean);
+    			for (let i = 0; i < each_blocks.length; i += 1) outro_block(i, 0, 0);
+
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(div);
+    			}
+
+    			destroy_each(each_blocks, detaching);
+    		}
+    	};
+    }
+
+    function create_fragment$5(ctx) {
+    	var div7, div1, div0, t0, div6, div5, h1, t1, t2, h2, t3, t4, div3, div2, label0, t5, input0, t6, label1, t7, input1, t8, label2, t9, select, option, t10, button, t11, t12, div4, current, dispose;
+
+    	var each_value_2 = ctx.servidores;
+
+    	var each_blocks_1 = [];
+
+    	for (var i = 0; i < each_value_2.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
+    	}
+
+    	var each_value = ctx.servidores;
+
+    	var each_blocks = [];
+
+    	for (var i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    	}
+
+    	function outro_block(i, detaching, local) {
+    		if (each_blocks[i]) {
+    			if (detaching) {
+    				on_outro(() => {
+    					each_blocks[i].d(detaching);
+    					each_blocks[i] = null;
+    				});
+    			}
+
+    			each_blocks[i].o(local);
+    		}
+    	}
+
+    	return {
+    		c: function create() {
+    			div7 = element("div");
+    			div1 = element("div");
+    			div0 = element("div");
+    			t0 = space();
+    			div6 = element("div");
+    			div5 = element("div");
+    			h1 = element("h1");
+    			t1 = text("Sites");
+    			t2 = space();
+    			h2 = element("h2");
+    			t3 = text("Edição");
+    			t4 = space();
+    			div3 = element("div");
+    			div2 = element("div");
+    			label0 = element("label");
+    			t5 = text("Site\r\n                    ");
+    			input0 = element("input");
+    			t6 = space();
+    			label1 = element("label");
+    			t7 = text("URL\r\n                    ");
+    			input1 = element("input");
+    			t8 = space();
+    			label2 = element("label");
+    			t9 = text("Servidor\r\n                    ");
+    			select = element("select");
+    			option = element("option");
+
+    			for (var i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
+    			t10 = space();
+    			button = element("button");
+    			t11 = text("Adicionar");
+    			t12 = space();
+    			div4 = element("div");
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			div7 = claim_element(nodes, "DIV", { class: true }, false);
+    			var div7_nodes = children(div7);
+
+    			div1 = claim_element(div7_nodes, "DIV", { class: true }, false);
+    			var div1_nodes = children(div1);
+
+    			div0 = claim_element(div1_nodes, "DIV", {}, false);
+    			var div0_nodes = children(div0);
+
+    			div0_nodes.forEach(detach);
+    			div1_nodes.forEach(detach);
+    			t0 = claim_text(div7_nodes, "\r\n\r\n  ");
+
+    			div6 = claim_element(div7_nodes, "DIV", { class: true }, false);
+    			var div6_nodes = children(div6);
+
+    			div5 = claim_element(div6_nodes, "DIV", { class: true }, false);
+    			var div5_nodes = children(div5);
+
+    			h1 = claim_element(div5_nodes, "H1", {}, false);
+    			var h1_nodes = children(h1);
+
+    			t1 = claim_text(h1_nodes, "Sites");
+    			h1_nodes.forEach(detach);
+    			t2 = claim_text(div5_nodes, "\r\n      ");
+
+    			h2 = claim_element(div5_nodes, "H2", {}, false);
+    			var h2_nodes = children(h2);
+
+    			t3 = claim_text(h2_nodes, "Edição");
+    			h2_nodes.forEach(detach);
+    			t4 = claim_text(div5_nodes, "\r\n      ");
+
+    			div3 = claim_element(div5_nodes, "DIV", { class: true, style: true }, false);
+    			var div3_nodes = children(div3);
+
+    			div2 = claim_element(div3_nodes, "DIV", { class: true }, false);
+    			var div2_nodes = children(div2);
+
+    			label0 = claim_element(div2_nodes, "LABEL", { class: true }, false);
+    			var label0_nodes = children(label0);
+
+    			t5 = claim_text(label0_nodes, "Site\r\n                    ");
+
+    			input0 = claim_element(label0_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input0_nodes = children(input0);
+
+    			input0_nodes.forEach(detach);
+    			label0_nodes.forEach(detach);
+    			t6 = claim_text(div2_nodes, "\r\n                ");
+
+    			label1 = claim_element(div2_nodes, "LABEL", { class: true }, false);
+    			var label1_nodes = children(label1);
+
+    			t7 = claim_text(label1_nodes, "URL\r\n                    ");
+
+    			input1 = claim_element(label1_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input1_nodes = children(input1);
+
+    			input1_nodes.forEach(detach);
+    			label1_nodes.forEach(detach);
+    			t8 = claim_text(div2_nodes, "\r\n                ");
+
+    			label2 = claim_element(div2_nodes, "LABEL", { class: true }, false);
+    			var label2_nodes = children(label2);
+
+    			t9 = claim_text(label2_nodes, "Servidor\r\n                    ");
+
+    			select = claim_element(label2_nodes, "SELECT", { class: true }, false);
+    			var select_nodes = children(select);
+
+    			option = claim_element(select_nodes, "OPTION", { value: true }, false);
+    			var option_nodes = children(option);
+
+    			option_nodes.forEach(detach);
+
+    			for (var i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].l(select_nodes);
+    			}
+
+    			select_nodes.forEach(detach);
+    			label2_nodes.forEach(detach);
+    			div2_nodes.forEach(detach);
+    			t10 = claim_text(div3_nodes, "\r\n            ");
+
+    			button = claim_element(div3_nodes, "BUTTON", { class: true, style: true }, false);
+    			var button_nodes = children(button);
+
+    			t11 = claim_text(button_nodes, "Adicionar");
+    			button_nodes.forEach(detach);
+    			div3_nodes.forEach(detach);
+    			t12 = claim_text(div5_nodes, "\r\n\r\n      \r\n      ");
+
+    			div4 = claim_element(div5_nodes, "DIV", { class: true }, false);
+    			var div4_nodes = children(div4);
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].l(div4_nodes);
+    			}
+
+    			div4_nodes.forEach(detach);
+    			div5_nodes.forEach(detach);
+    			div6_nodes.forEach(detach);
+    			div7_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			add_location(div0, file$3, 129, 4, 4151);
+    			div1.className = "sidebar esquerda";
+    			add_location(div1, file$3, 128, 2, 4115);
+    			add_location(h1, file$3, 137, 6, 4313);
+    			add_location(h2, file$3, 138, 6, 4335);
+    			input0.className = "uk-input";
+    			attr(input0, "type", "text");
+    			input0.placeholder = "Nome";
+    			add_location(input0, file$3, 144, 20, 4547);
+    			label0.className = "svelte-11atozw";
+    			add_location(label0, file$3, 143, 16, 4514);
+    			input1.className = "uk-input";
+    			attr(input1, "type", "text");
+    			input1.placeholder = "URL";
+    			add_location(input1, file$3, 151, 20, 4786);
+    			label1.className = "svelte-11atozw";
+    			add_location(label1, file$3, 150, 16, 4754);
+    			option.__value = "";
+    			option.value = option.__value;
+    			add_location(option, file$3, 159, 24, 5111);
+    			if (ctx.servselecionado === void 0) add_render_callback(() => ctx.select_change_handler.call(select));
+    			select.className = "uk-select";
+    			add_location(select, file$3, 158, 20, 5030);
+    			label2.className = "svelte-11atozw";
+    			add_location(label2, file$3, 157, 16, 4993);
+    			div2.className = "formsites svelte-11atozw";
+    			add_location(div2, file$3, 142, 10, 4473);
+    			button.className = "uk-button uk-button-default";
+    			set_style(button, "margin", "10px");
+    			add_location(button, file$3, 166, 12, 5382);
+    			div3.className = "uk-card uk-card-primary uk-width-1-1@m uk-margin ";
+    			set_style(div3, "padding", "30px");
+    			add_location(div3, file$3, 139, 6, 4358);
+    			div4.className = "sites svelte-11atozw";
+    			add_location(div4, file$3, 174, 6, 5639);
+    			div5.className = "colunas nested";
+    			add_location(div5, file$3, 136, 4, 4277);
+    			div6.className = "centro";
+    			add_location(div6, file$3, 134, 2, 4249);
+    			div7.className = "main";
+    			add_location(div7, file$3, 127, 0, 4093);
+
+    			dispose = [
+    				listen(input0, "input", ctx.input0_input_handler),
+    				listen(input1, "input", ctx.input1_input_handler),
+    				listen(select, "change", ctx.select_change_handler),
+    				listen(button, "click", ctx.addSite)
+    			];
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, div7, anchor);
+    			append(div7, div1);
+    			append(div1, div0);
+    			append(div7, t0);
+    			append(div7, div6);
+    			append(div6, div5);
+    			append(div5, h1);
+    			append(h1, t1);
+    			append(div5, t2);
+    			append(div5, h2);
+    			append(h2, t3);
+    			append(div5, t4);
+    			append(div5, div3);
+    			append(div3, div2);
+    			append(div2, label0);
+    			append(label0, t5);
+    			append(label0, input0);
+
+    			input0.value = ctx.nomesite;
+
+    			append(div2, t6);
+    			append(div2, label1);
+    			append(label1, t7);
+    			append(label1, input1);
+
+    			input1.value = ctx.urlsite;
+
+    			append(div2, t8);
+    			append(div2, label2);
+    			append(label2, t9);
+    			append(label2, select);
+    			append(select, option);
+
+    			for (var i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(select, null);
+    			}
+
+    			select_option(select, ctx.servselecionado);
+
+    			append(div3, t10);
+    			append(div3, button);
+    			append(button, t11);
+    			append(div5, t12);
+    			append(div5, div4);
+
+    			for (var i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div4, null);
+    			}
+
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if (changed.nomesite && (input0.value !== ctx.nomesite)) input0.value = ctx.nomesite;
+    			if (changed.urlsite && (input1.value !== ctx.urlsite)) input1.value = ctx.urlsite;
+
+    			if (changed.servidores) {
+    				each_value_2 = ctx.servidores;
+
+    				for (var i = 0; i < each_value_2.length; i += 1) {
+    					const child_ctx = get_each_context_2(ctx, each_value_2, i);
+
+    					if (each_blocks_1[i]) {
+    						each_blocks_1[i].p(changed, child_ctx);
+    					} else {
+    						each_blocks_1[i] = create_each_block_2(child_ctx);
+    						each_blocks_1[i].c();
+    						each_blocks_1[i].m(select, null);
+    					}
+    				}
+
+    				for (; i < each_blocks_1.length; i += 1) {
+    					each_blocks_1[i].d(1);
+    				}
+    				each_blocks_1.length = each_value_2.length;
+    			}
+
+    			if (changed.servselecionado) select_option(select, ctx.servselecionado);
+
+    			if (changed.sites3lados || changed.servidores || changed.removeSite) {
+    				each_value = ctx.servidores;
+
+    				for (var i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(changed, child_ctx);
+    						each_blocks[i].i(1);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].i(1);
+    						each_blocks[i].m(div4, null);
+    					}
+    				}
+
+    				group_outros();
+    				for (; i < each_blocks.length; i += 1) outro_block(i, 1, 1);
+    				check_outros();
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			for (var i = 0; i < each_value.length; i += 1) each_blocks[i].i();
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			each_blocks = each_blocks.filter(Boolean);
+    			for (let i = 0; i < each_blocks.length; i += 1) outro_block(i, 0, 0);
+
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(div7);
+    			}
+
+    			destroy_each(each_blocks_1, detaching);
+
+    			destroy_each(each_blocks, detaching);
+
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    let URL = "teste.3lados.com.br";
+
+    let tokenteste3lados =
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC90ZXN0ZS4zbGFkb3MuY29tLmJyIiwiaWF0IjoxNTYyMTc0MzY3LCJuYmYiOjE1NjIxNzQzNjcsImV4cCI6MTU2Mjc3OTE2NywiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMSJ9fX0.Po_qNYBF3BfuxvRU74hb1cOI02AMW-sIPBblG6aGx9E";
+
+    let excerpt = "resumo";
+
+    function removeSite(e) {
+      let id = e.target.name;
+      {
+        var post = new XMLHttpRequest();
+        post.open("DELETE", "http://" + URL + "/wp-json/wp/v2/sites/" + id);
+        post.setRequestHeader("Authorization", "Bearer " + tokenteste3lados);
+        post.send();
+        post.onreadystatechange = function() {
+          console.log(post);
+          console.log(post.readyState);
+          if (post.readyState == 4) {
+            if (post.status == 200) {
+              window.location = "/";
+            } else {
+              alert("Error - try again.");
+            }
+          }
+        };
+      }
+    }
+
+    function instance$5($$self, $$props, $$invalidate) {
+    	
+      
+      let { url = "sites" } = $$props;
+
+      let sites3lados = [];
+      let servidores = [];
+      let servselecionado = "";
+      let nomesite = "";
+      let urlsite = "";
+
+      onMount(async () => {
+        // const res = await fetch(`https://eurovinhos.ml/wc-api/v3/products/?per_page=20&consumer_key=ck_a232b308626bec11aae453b858b2ef36090c4b5f&consumer_secret=cs_18c14d587c2bd007f518fdb5e8c04283c7bb4956`);
+        // products = await res.json();
+        $$invalidate('sites3lados', sites3lados = await fetch(`http://` + URL + `/wp-json/wp/v2/sites`).then(
+          r => r.json()
+        ));
+        $$invalidate('servidores', servidores = await fetch(
+          `http://` + URL + `/wp-json/wp/v2/servidores`
+        ).then(r => r.json()));
+        // servidores = await fetch(
+        //   `https://jsonplaceholder.typicode.com/photos?_limit=20`
+        // ).then(r => r.json());
+        console.log(servidores);
+      });
+
+      function addSite() {
+        var ourPostData = {
+          title: nomesite,
+          content: urlsite,
+          servidores: servselecionado,
+          status: "publish",
+          excerpt: excerpt
+        };
+        var createPost = new XMLHttpRequest();
+        createPost.open("POST", "http://" + URL + "/wp-json/wp/v2/sites");
+        createPost.setRequestHeader("Authorization", "Bearer " + tokenteste3lados);
+        // createPost.setRequestHeader("X-WP-Nonce", nonce.nonce);
+        createPost.setRequestHeader(
+          "Content-Type",
+          "application/json; charset=UTF-8"
+        );
+        // createPost.setRequestHeader("Accept", "*/*");
+        // createPost.setRequestHeader("Access-Control-Allow-Headers", "*");
+        // createPost.setRequestHeader("Access-Control-Allow-Origin", "*");
+        // createPost.setRequestHeader("Cache-Control", "no-cache");
+        // createPost.setRequestHeader("Origin", "http://localhost:5000/");
+        createPost.send(JSON.stringify(ourPostData));
+        createPost.onreadystatechange = function() {
+          console.log(createPost);
+          if (createPost.readyState == 4) {
+            if (createPost.status == 201) {
+              $$invalidate('nomesite', nomesite = "");
+              $$invalidate('urlsite', urlsite = "");
+              window.location = "/";
+            } else {
+              alert("Error - try again.");
+            }
+          }
+        };
+      }
+
+    	const writable_props = ['url'];
+    	Object.keys($$props).forEach(key => {
+    		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Sites> was created with unknown prop '${key}'`);
+    	});
+
+    	function input0_input_handler() {
+    		nomesite = this.value;
+    		$$invalidate('nomesite', nomesite);
+    	}
+
+    	function input1_input_handler() {
+    		urlsite = this.value;
+    		$$invalidate('urlsite', urlsite);
+    	}
+
+    	function select_change_handler() {
+    		servselecionado = select_value(this);
+    		$$invalidate('servselecionado', servselecionado);
+    		$$invalidate('servidores', servidores);
+    	}
+
+    	$$self.$set = $$props => {
+    		if ('url' in $$props) $$invalidate('url', url = $$props.url);
+    	};
+
+    	return {
+    		url,
+    		sites3lados,
+    		servidores,
+    		servselecionado,
+    		nomesite,
+    		urlsite,
+    		addSite,
+    		input0_input_handler,
+    		input1_input_handler,
+    		select_change_handler
+    	};
+    }
+
+    class Sites extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, ["url"]);
+    	}
+
+    	get url() {
+    		throw new Error("<Sites>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set url(value) {
+    		throw new Error("<Sites>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src\App.svelte generated by Svelte v3.5.1 */
+
+    const file$4 = "src\\App.svelte";
+
+    // (33:4) <Link to="/">
+    function create_default_slot_3(ctx) {
+    	var t;
+
+    	return {
+    		c: function create() {
+    			t = text("Home");
+    		},
+
+    		l: function claim(nodes) {
+    			t = claim_text(nodes, "Home");
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, t, anchor);
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(t);
+    			}
+    		}
+    	};
+    }
+
+    // (34:4) <Link to="sites" replace>
+    function create_default_slot_2(ctx) {
+    	var t;
+
+    	return {
+    		c: function create() {
+    			t = text("Sites");
+    		},
+
+    		l: function claim(nodes) {
+    			t = claim_text(nodes, "Sites");
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, t, anchor);
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(t);
+    			}
+    		}
+    	};
+    }
+
+    // (37:4) <Route path="/">
+    function create_default_slot_1(ctx) {
+    	var current;
+
+    	var home = new Home({ $$inline: true });
+
+    	return {
+    		c: function create() {
+    			home.$$.fragment.c();
+    		},
+
+    		l: function claim(nodes) {
+    			home.$$.fragment.l(nodes);
+    		},
+
+    		m: function mount(target, anchor) {
+    			mount_component(home, target, anchor);
+    			current = true;
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			home.$$.fragment.i(local);
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			home.$$.fragment.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			home.$destroy(detaching);
+    		}
+    	};
+    }
+
+    // (31:0) <Router url="{url}">
+    function create_default_slot(ctx) {
+    	var nav, t0, t1, div, t2, current;
+
+    	var link0 = new Link({
+    		props: {
+    		to: "/",
+    		$$slots: { default: [create_default_slot_3] },
+    		$$scope: { ctx }
+    	},
+    		$$inline: true
+    	});
+
+    	var link1 = new Link({
+    		props: {
+    		to: "sites",
+    		replace: true,
+    		$$slots: { default: [create_default_slot_2] },
+    		$$scope: { ctx }
+    	},
+    		$$inline: true
+    	});
+
+    	var route0 = new Route({
+    		props: {
+    		path: "/",
+    		$$slots: { default: [create_default_slot_1] },
+    		$$scope: { ctx }
+    	},
+    		$$inline: true
+    	});
+
+    	var route1 = new Route({
+    		props: { path: "sites", component: Sites },
+    		$$inline: true
+    	});
+
+    	return {
+    		c: function create() {
+    			nav = element("nav");
+    			link0.$$.fragment.c();
+    			t0 = space();
+    			link1.$$.fragment.c();
+    			t1 = space();
+    			div = element("div");
+    			route0.$$.fragment.c();
+    			t2 = space();
+    			route1.$$.fragment.c();
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			nav = claim_element(nodes, "NAV", {}, false);
+    			var nav_nodes = children(nav);
+
+    			link0.$$.fragment.l(nav_nodes);
+    			t0 = claim_text(nav_nodes, "\n    ");
+    			link1.$$.fragment.l(nav_nodes);
+    			nav_nodes.forEach(detach);
+    			t1 = claim_text(nodes, "\n  ");
+
+    			div = claim_element(nodes, "DIV", {}, false);
+    			var div_nodes = children(div);
+
+    			route0.$$.fragment.l(div_nodes);
+    			t2 = claim_text(div_nodes, "\n    ");
+    			route1.$$.fragment.l(div_nodes);
+    			div_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			add_location(nav, file$4, 31, 2, 853);
+    			add_location(div, file$4, 35, 2, 941);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, nav, anchor);
+    			mount_component(link0, nav, null);
+    			append(nav, t0);
+    			mount_component(link1, nav, null);
+    			insert(target, t1, anchor);
+    			insert(target, div, anchor);
+    			mount_component(route0, div, null);
+    			append(div, t2);
+    			mount_component(route1, div, null);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			var link0_changes = {};
+    			if (changed.$$scope) link0_changes.$$scope = { changed, ctx };
+    			link0.$set(link0_changes);
+
+    			var link1_changes = {};
+    			if (changed.$$scope) link1_changes.$$scope = { changed, ctx };
+    			link1.$set(link1_changes);
+
+    			var route0_changes = {};
+    			if (changed.$$scope) route0_changes.$$scope = { changed, ctx };
+    			route0.$set(route0_changes);
+
+    			var route1_changes = {};
+    			if (changed.Sites) route1_changes.component = Sites;
+    			route1.$set(route1_changes);
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			link0.$$.fragment.i(local);
+
+    			link1.$$.fragment.i(local);
+
+    			route0.$$.fragment.i(local);
+
+    			route1.$$.fragment.i(local);
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			link0.$$.fragment.o(local);
+    			link1.$$.fragment.o(local);
+    			route0.$$.fragment.o(local);
+    			route1.$$.fragment.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(nav);
+    			}
+
+    			link0.$destroy();
+
+    			link1.$destroy();
+
+    			if (detaching) {
+    				detach(t1);
+    				detach(div);
+    			}
+
+    			route0.$destroy();
+
+    			route1.$destroy();
+    		}
+    	};
+    }
+
+    function create_fragment$6(ctx) {
+    	var current;
+
+    	var router = new Router({
+    		props: {
+    		url: ctx.url,
+    		$$slots: { default: [create_default_slot] },
+    		$$scope: { ctx }
+    	},
+    		$$inline: true
+    	});
+
+    	return {
+    		c: function create() {
+    			router.$$.fragment.c();
+    		},
+
+    		l: function claim(nodes) {
+    			router.$$.fragment.l(nodes);
+    		},
+
+    		m: function mount(target, anchor) {
+    			mount_component(router, target, anchor);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			var router_changes = {};
+    			if (changed.url) router_changes.url = ctx.url;
+    			if (changed.$$scope) router_changes.$$scope = { changed, ctx };
+    			router.$set(router_changes);
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			router.$$.fragment.i(local);
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			router.$$.fragment.o(local);
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			router.$destroy(detaching);
+    		}
+    	};
+    }
+
+    function instance$6($$self, $$props, $$invalidate) {
+    	
+      // import NavLink from "./components/NavLink.svelte";
+      // import { Home, About, Blog, BlogPost } from "./routes";
+      let { url } = $$props;
+
+    	const writable_props = ['url'];
+    	Object.keys($$props).forEach(key => {
+    		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<App> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$set = $$props => {
+    		if ('url' in $$props) $$invalidate('url', url = $$props.url);
+    	};
+
+    	return { url };
     }
 
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$1, create_fragment$1, safe_not_equal, []);
+    		init(this, options, instance$6, create_fragment$6, safe_not_equal, ["url"]);
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+    		if (ctx.url === undefined && !('url' in props)) {
+    			console.warn("<App> was created without expected prop 'url'");
+    		}
+    	}
+
+    	get url() {
+    		throw new Error("<App>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set url(value) {
+    		throw new Error("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
 
     const app = new App({
     	target: document.body,
+    	hydrate: true,
     	props: {
     		// name: 'STARTPAGE'
     	}

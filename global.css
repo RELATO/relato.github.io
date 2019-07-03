@@ -19,6 +19,33 @@ body {
 	color: #fff;
 }
 
+nav{
+	background: rgba(66,73,100,1);
+	background: -moz-linear-gradient(-45deg, rgba(66,73,100,1) 0%, rgba(93,102,138,1) 100%);
+	background: -webkit-gradient(left top, right bottom, color-stop(0%, rgba(66,73,100,1)), color-stop(100%, rgba(93,102,138,1)));
+	background: -webkit-linear-gradient(-45deg, rgba(66,73,100,1) 0%, rgba(93,102,138,1) 100%);
+	background: -o-linear-gradient(-45deg, rgba(66,73,100,1) 0%, rgba(93,102,138,1) 100%);
+	background: -ms-linear-gradient(-45deg, rgba(66,73,100,1) 0%, rgba(93,102,138,1) 100%);
+	background: linear-gradient(135deg, rgba(66,73,100,1) 0%, rgba(93,102,138,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#424964', endColorstr='#5d668a', GradientType=1 );
+	padding: 15px;
+	display: inline-block;
+	width: 100%;
+	text-align: center;
+}
+nav a {
+    margin: auto ;
+    color: #fff;
+	font-weight: 600;
+	border-right: 1px solid #00000030;
+	padding: 0 30px;
+}
+nav a:hover {
+    color: #ffffff90;
+}
+nav a:last-child {
+	border:0;
+}
 #fundosvg{
 	min-width: 100vw;
 	min-height: 100vh;
@@ -289,16 +316,6 @@ h3::after {
 	animation-delay: 0.7s;
 }
 
-.listasites a:first-child {
-    flex:13;
-}
-.listasites a:last-child {
-	flex:1;
-	color:#E26D5A;
-}
-.listasites {
-    display: flex;
-}
 @-webkit-keyframes tracking-in-contract {
 	0% {
 		letter-spacing: 1em;
