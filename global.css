@@ -289,6 +289,16 @@ h3::after {
 	animation-delay: 0.7s;
 }
 
+.listasites a:first-child {
+    flex:13;
+}
+.listasites a:last-child {
+	flex:1;
+	color:#E26D5A;
+}
+.listasites {
+    display: flex;
+}
 @-webkit-keyframes tracking-in-contract {
 	0% {
 		letter-spacing: 1em;
