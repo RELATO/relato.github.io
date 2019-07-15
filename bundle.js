@@ -201,6 +201,9 @@ var app = (function () {
         const selected_option = select.querySelector(':checked') || select.options[0];
         return selected_option && selected_option.__value;
     }
+    function toggle_class(element, name, toggle) {
+        element.classList[toggle ? 'add' : 'remove'](name);
+    }
     function custom_event(type, detail) {
         const e = document.createEvent('CustomEvent');
         e.initCustomEvent(type, false, false, detail);
@@ -2000,7 +2003,7 @@ var app = (function () {
     const file$1 = "src\\Profile.svelte";
 
     function create_fragment$3(ctx) {
-    	var h4, t0, t1, t2, t3, img;
+    	var h4, t0, t1, t2, t3, span, t4, t5, img;
 
     	return {
     		c: function create() {
@@ -2009,6 +2012,9 @@ var app = (function () {
     			t1 = text(ctx.displayName);
     			t2 = text("!");
     			t3 = space();
+    			span = element("span");
+    			t4 = text(ctx.email);
+    			t5 = space();
     			img = element("img");
     			this.h();
     		},
@@ -2023,6 +2029,13 @@ var app = (function () {
     			h4_nodes.forEach(detach);
     			t3 = claim_text(nodes, "\r\n");
 
+    			span = claim_element(nodes, "SPAN", { class: true }, false);
+    			var span_nodes = children(span);
+
+    			t4 = claim_text(span_nodes, ctx.email);
+    			span_nodes.forEach(detach);
+    			t5 = claim_text(nodes, "\r\n\r\n\r\n");
+
     			img = claim_element(nodes, "IMG", { class: true, src: true, width: true, alt: true }, false);
     			var img_nodes = children(img);
 
@@ -2031,13 +2044,15 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			h4.className = "svelte-1k492ca";
-    			add_location(h4, file$1, 19, 0, 326);
-    			img.className = "avatar svelte-1k492ca";
+    			h4.className = "svelte-1y3a6mm";
+    			add_location(h4, file$1, 25, 0, 453);
+    			span.className = "svelte-1y3a6mm";
+    			add_location(span, file$1, 26, 0, 483);
+    			img.className = "avatar svelte-1y3a6mm";
     			img.src = ctx.photoURL;
     			img.width = "100";
     			img.alt = "user avatar";
-    			add_location(img, file$1, 20, 0, 356);
+    			add_location(img, file$1, 29, 0, 536);
     		},
 
     		m: function mount(target, anchor) {
@@ -2046,12 +2061,19 @@ var app = (function () {
     			append(h4, t1);
     			append(h4, t2);
     			insert(target, t3, anchor);
+    			insert(target, span, anchor);
+    			append(span, t4);
+    			insert(target, t5, anchor);
     			insert(target, img, anchor);
     		},
 
     		p: function update(changed, ctx) {
     			if (changed.displayName) {
     				set_data(t1, ctx.displayName);
+    			}
+
+    			if (changed.email) {
+    				set_data(t4, ctx.email);
     			}
 
     			if (changed.photoURL) {
@@ -2066,6 +2088,8 @@ var app = (function () {
     			if (detaching) {
     				detach(h4);
     				detach(t3);
+    				detach(span);
+    				detach(t5);
     				detach(img);
     			}
     		}
@@ -2073,9 +2097,9 @@ var app = (function () {
     }
 
     function instance$3($$self, $$props, $$invalidate) {
-    	let { displayName, photoURL, uid } = $$props;
+    	let { displayName, photoURL, uid, email } = $$props;
 
-    	const writable_props = ['displayName', 'photoURL', 'uid'];
+    	const writable_props = ['displayName', 'photoURL', 'uid', 'email'];
     	Object.keys($$props).forEach(key => {
     		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Profile> was created with unknown prop '${key}'`);
     	});
@@ -2084,15 +2108,16 @@ var app = (function () {
     		if ('displayName' in $$props) $$invalidate('displayName', displayName = $$props.displayName);
     		if ('photoURL' in $$props) $$invalidate('photoURL', photoURL = $$props.photoURL);
     		if ('uid' in $$props) $$invalidate('uid', uid = $$props.uid);
+    		if ('email' in $$props) $$invalidate('email', email = $$props.email);
     	};
 
-    	return { displayName, photoURL, uid };
+    	return { displayName, photoURL, uid, email };
     }
 
     class Profile extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$3, create_fragment$3, safe_not_equal, ["displayName", "photoURL", "uid"]);
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, ["displayName", "photoURL", "uid", "email"]);
 
     		const { ctx } = this.$$;
     		const props = options.props || {};
@@ -2104,6 +2129,9 @@ var app = (function () {
     		}
     		if (ctx.uid === undefined && !('uid' in props)) {
     			console.warn("<Profile> was created without expected prop 'uid'");
+    		}
+    		if (ctx.email === undefined && !('email' in props)) {
+    			console.warn("<Profile> was created without expected prop 'email'");
     		}
     	}
 
@@ -2128,6 +2156,14 @@ var app = (function () {
     	}
 
     	set uid(value) {
+    		throw new Error("<Profile>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get email() {
+    		throw new Error("<Profile>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set email(value) {
     		throw new Error("<Profile>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -5244,8 +5280,8 @@ var app = (function () {
     function yc(a){var b=new Ac;b.c=a.c;a.a&&(b.a=new Q(a.a),b.b=a.b);return b}function V(a,b){b=String(b);a.f&&(b=b.toLowerCase());return b}function Gc(a,b){b&&!a.f&&(U(a),a.c=null,a.a.forEach(function(c,d){var e=d.toLowerCase();d!=e&&(Mc(this,d),Ic(this,e,c));},a));a.f=b;}function Qc(){}function Rc(){}x(Rc,Qc);function Sc(a){this.a=a;this.b=this.h=null;this.g=!1;this.i=null;this.c=-1;this.l=this.f=null;}g=Sc.prototype;g.M=null;function Uc(a){var b=a.a.F.a;if(null!=b)K(4),b?(K(10),Vc(a.a,a,!1)):(K(11),Vc(a.a,a,!0));else{a.b=new M(a,void 0,void 0);a.b.h=a.h;b=a.a;b=Wc(b,b.Y()?a.f:null,a.i);K(4);fc(b,"TYPE","xmlhttp");var c=a.a.j,d=a.a.I;c&&d&&T(b,c,d);dc(a.b,b,!1,a.f);}}g.$=function(a){return this.a.$(a)};g.abort=function(){this.b&&(this.b.cancel(),this.b=null);this.c=-1;};g.Da=function(){return !1};
     g.Ga=function(a,b){this.c=a.o;if(0==this.M){if(!this.a.o&&(a=a.a)){var c=hc(a,"X-Client-Wire-Protocol");this.l=c?c:null;this.a.j&&(a=hc(a,"X-HTTP-Session-Id"))&&(this.a.I=a);}if(b){try{var d=this.a.ja.a.parse(b);}catch(e){b=this.a;b.m=this.c;W(b,2);return}this.f=d[0];}else b=this.a,b.m=this.c,W(b,2);}else if(1==this.M)if(this.g)K(6);else if("11111"==b){if(K(5),this.g=!0,!B||10<=Number(Na))this.c=200,this.b.cancel(),K(11),Vc(this.a,this,!0);}else K(7),this.g=!1;};
     g.na=function(){this.c=this.b.o;if(this.b.b)0==this.M?(this.M=1,Uc(this)):1==this.M&&(this.g?(K(11),Vc(this.a,this,!0)):(K(10),Vc(this.a,this,!1)));else{0==this.M?K(8):1==this.M&&K(9);var a=this.a;a.m=this.c;W(a,2);}};g.Y=function(){return this.a.Y()};g.ma=function(){return this.a.ma()};function Xc(){this.a=this.b=null;}function Yc(){this.a=new Q;}function Zc(a){var b=typeof a;return "object"==b&&a||"function"==b?"o"+(a[t]||(a[t]=++da)):b.charAt(0)+a}Yc.prototype.add=function(a){this.a.set(Zc(a),a);};Yc.prototype.C=function(){return this.a.C()};function $c(a,b){this.b=a;this.a=b;}function ad(a){this.g=a||bd;k.PerformanceNavigationTiming?(a=k.performance.getEntriesByType("navigation"),a=0<a.length&&("hq"==a[0].nextHopProtocol||"h2"==a[0].nextHopProtocol)):a=!!(k.ka&&k.ka.Ea&&k.ka.Ea()&&k.ka.Ea().zb);this.f=a?this.g:1;this.a=null;1<this.f&&(this.a=new Yc);this.b=null;this.c=[];}var bd=10;function cd(a,b){!a.a&&(z(b,"spdy")||z(b,"quic")||z(b,"h2"))&&(a.f=a.g,a.a=new Yc,a.b&&(dd(a,a.b),a.b=null));}function ed(a){return a.b?!0:a.a?a.a.a.c>=a.f:!1}
-    function fd(a){return a.b?1:a.a?a.a.a.c:0}function gd(a,b){a.b?a=a.b==b:a.a?(b=Zc(b),a=R(a.a.a.b,b)):a=!1;return a}function dd(a,b){a.a?a.a.add(b):a.b=b;}function hd(a,b){if(a.b&&a.b==b)a.b=null;else{var c;if(c=a.a)c=Zc(b),c=R(a.a.a.b,c);c&&rc(a.a.a,Zc(b));}}ad.prototype.cancel=function(){this.c=id(this);this.b?(this.b.cancel(),this.b=null):this.a&&0!=this.a.a.c&&(la(this.a.C(),function(a){a.cancel();}),qc(this.a.a));};
-    function id(a){if(null!=a.b)return a.c.concat(a.b.j);if(null!=a.a&&0!=a.a.a.c){var b=a.c;la(a.a.C(),function(c){b=b.concat(c.j);});return b}return pa(a.c)}function jd(){}jd.prototype.stringify=function(a){return k.JSON.stringify(a,void 0)};jd.prototype.parse=function(a){return k.JSON.parse(a,void 0)};function kd(){this.a=new jd;}function ld(a,b,c){var d=c||"";try{oc(a,function(e,f){var h=e;r(e)&&(h=ob(e));b.push(d+f+"="+encodeURIComponent(h));});}catch(e){throw b.push(d+"type="+encodeURIComponent("_badmap")),e;}}function md(a,b){var c=new Kb;if(k.Image){var d=new Image;d.onload=v(nd,c,d,"TestLoadImage: loaded",!0,b);d.onerror=v(nd,c,d,"TestLoadImage: error",!1,b);d.onabort=v(nd,c,d,"TestLoadImage: abort",!1,b);d.ontimeout=v(nd,c,d,"TestLoadImage: timeout",!1,b);k.setTimeout(function(){if(d.ontimeout)d.ontimeout();},1E4);d.src=a;}else b(!1);}function nd(a,b,c,d,e){try{b.onload=null,b.onerror=null,b.onabort=null,b.ontimeout=null,e(d);}catch(f){}}var od=k.JSON.parse;function X(a){G.call(this);this.headers=new Q;this.H=a||null;this.b=!1;this.s=this.a=null;this.A="";this.h=0;this.f="";this.g=this.w=this.l=this.v=!1;this.o=0;this.m=null;this.I=pd;this.D=this.F=!1;}x(X,G);var pd="",qd=/^https?$/i,rd=["POST","PUT"];g=X.prototype;
+    function fd(a){return a.b?1:a.a?a.a.a.c:0}function gd(a,b){a.b?a=a.b==b:a.a?(b=Zc(b),a=R(a.a.a.b,b)):a=!1;return a}function dd(a,b){a.a?a.a.add(b):a.b=b;}function hd(a,b){if(a.b&&a.b==b)a.b=null;else{var c;if(c=a.a)c=Zc(b),c=R(a.a.a.b,c);c&&rc(a.a.a,Zc(b));}}ad.prototype.cancel=function(){this.c=id$1(this);this.b?(this.b.cancel(),this.b=null):this.a&&0!=this.a.a.c&&(la(this.a.C(),function(a){a.cancel();}),qc(this.a.a));};
+    function id$1(a){if(null!=a.b)return a.c.concat(a.b.j);if(null!=a.a&&0!=a.a.a.c){var b=a.c;la(a.a.C(),function(c){b=b.concat(c.j);});return b}return pa(a.c)}function jd(){}jd.prototype.stringify=function(a){return k.JSON.stringify(a,void 0)};jd.prototype.parse=function(a){return k.JSON.parse(a,void 0)};function kd(){this.a=new jd;}function ld(a,b,c){var d=c||"";try{oc(a,function(e,f){var h=e;r(e)&&(h=ob(e));b.push(d+f+"="+encodeURIComponent(h));});}catch(e){throw b.push(d+"type="+encodeURIComponent("_badmap")),e;}}function md(a,b){var c=new Kb;if(k.Image){var d=new Image;d.onload=v(nd,c,d,"TestLoadImage: loaded",!0,b);d.onerror=v(nd,c,d,"TestLoadImage: error",!1,b);d.onabort=v(nd,c,d,"TestLoadImage: abort",!1,b);d.ontimeout=v(nd,c,d,"TestLoadImage: timeout",!1,b);k.setTimeout(function(){if(d.ontimeout)d.ontimeout();},1E4);d.src=a;}else b(!1);}function nd(a,b,c,d,e){try{b.onload=null,b.onerror=null,b.onabort=null,b.ontimeout=null,e(d);}catch(f){}}var od=k.JSON.parse;function X(a){G.call(this);this.headers=new Q;this.H=a||null;this.b=!1;this.s=this.a=null;this.A="";this.h=0;this.f="";this.g=this.w=this.l=this.v=!1;this.o=0;this.m=null;this.I=pd;this.D=this.F=!1;}x(X,G);var pd="",qd=/^https?$/i,rd=["POST","PUT"];g=X.prototype;
     g.ca=function(a,b,c,d){if(this.a)throw Error("[goog.net.XhrIo] Object is active with another request="+this.A+"; newUri="+a);b=b?b.toUpperCase():"GET";this.A=a;this.f="";this.h=0;this.v=!1;this.b=!0;this.a=new XMLHttpRequest;this.s=this.H?Sb(this.H):Sb(Wb);this.a.onreadystatechange=u(this.Fa,this);try{this.w=!0,this.a.open(b,String(a),!0),this.w=!1;}catch(f){sd(this,f);return}a=c||"";var e=new Q(this.headers);d&&oc(d,function(f,h){e.set(h,f);});d=ma(e.K());c=k.FormData&&a instanceof k.FormData;!(0<=
     ja(rd,b))||d||c||e.set("Content-Type","application/x-www-form-urlencoded;charset=utf-8");e.forEach(function(f,h){this.a.setRequestHeader(h,f);},this);this.I&&(this.a.responseType=this.I);"withCredentials"in this.a&&this.a.withCredentials!==this.F&&(this.a.withCredentials=this.F);try{td(this),0<this.o&&((this.D=ud(this.a))?(this.a.timeout=this.o,this.a.ontimeout=u(this.Ca,this)):this.m=Eb(this.Ca,this.o,this)),this.l=!0,this.a.send(a),this.l=!1;}catch(f){sd(this,f);}};
     function ud(a){return B&&Ma(9)&&aa(a.timeout)&&void 0!==a.ontimeout}function na(a){return "content-type"==a.toLowerCase()}g.Ca=function(){"undefined"!=typeof goog&&this.a&&(this.f="Timed out after "+this.o+"ms, aborting",this.h=8,this.dispatchEvent("timeout"),this.abort(8));};function sd(a,b){a.b=!1;a.a&&(a.g=!0,a.a.abort(),a.g=!1);a.f=b;a.h=5;vd(a);wd(a);}function vd(a){a.v||(a.v=!0,a.dispatchEvent("complete"),a.dispatchEvent("error"));}
@@ -5267,7 +5303,7 @@ var app = (function () {
     this.a==a)&&Fd(this),!qa(b))for(b=c=this.ja.a.parse(b),c=0;c<b.length;c++){var d=b[c];this.O=d[0];d=d[1];if(2==this.u)if("c"==d[0]){this.H=d[1];this.ga=d[2];var e=d[3];null!=e&&(this.wa=e);d=d[5];null!=d&&aa(d)&&0<d&&(this.D=1.5*d);this.o&&(d=a.a)&&((e=hc(d,"X-Client-Wire-Protocol"))&&cd(this.b,e),this.j&&(d=hc(d,"X-HTTP-Session-Id")))&&(this.I=d,T(this.B,this.j,d));this.u=3;this.c&&this.c.va();d=a;this.pa=Wc(this,this.Y()?this.ga:null,this.ha);d.s?(hd(this.b,d),(e=this.D)&&d.setTimeout(e),d.i&&(gc(d),
     ec(d)),this.a=d):Md(this);0<this.f.length&&Hd(this);}else"stop"!=d[0]&&"close"!=d[0]||W(this,7);else 3==this.u&&("stop"==d[0]||"close"==d[0]?"stop"==d[0]?W(this,7):Bd(this):"noop"!=d[0]&&this.c&&this.c.ua(d),this.v=0);}};g.Za=function(){null!=this.s&&(this.s=null,this.a.cancel(),this.a=null,Nd(this),K(19));};function Fd(a){null!=a.s&&(k.clearTimeout(a.s),a.s=null);}
     g.na=function(a){var b=null;if(this.a==a){Fd(this);this.a=null;var c=2;}else if(gd(this.b,a))b=a.j,hd(this.b,a),c=1;else return;this.m=a.o;if(0!=this.u)if(a.b)1==c?(b=w()-a.v,I.dispatchEvent(new Nb(I,a.l?a.l.length:0,b,this.A)),Hd(this)):Md(this);else{var d=a.c;if(3==d||0==d&&0<this.m||!(1==c&&Id(this,a)||2==c&&Nd(this)))switch(b&&0<b.length&&(a=this.b,a.c=a.c.concat(b)),d){case 1:W(this,5);break;case 4:W(this,10);break;case 3:W(this,6);break;default:W(this,2);}}};
-    function Jd(a,b){var c=a.Oa+Math.floor(Math.random()*a.Sa);a.ma()||(c*=2);return c*b}function W(a,b){if(2==b){var c=null;a.c&&(c=null);var d=u(a.fb,a);c||(c=new S("//www.google.com/images/cleardot.gif"),k.location&&"http"==k.location.protocol||uc(c,"https"),bc(c));md(c.toString(),d);}else K(2);a.u=0;a.c&&a.c.ta(b);Ed(a);Cd(a);}g.fb=function(a){a?K(2):K(1);};function Ed(a){a.u=0;a.m=-1;if(a.c){if(0!=id(a.b).length||0!=a.f.length)a.b.c.length=0,pa(a.f),a.f.length=0;a.c.sa();}}
+    function Jd(a,b){var c=a.Oa+Math.floor(Math.random()*a.Sa);a.ma()||(c*=2);return c*b}function W(a,b){if(2==b){var c=null;a.c&&(c=null);var d=u(a.fb,a);c||(c=new S("//www.google.com/images/cleardot.gif"),k.location&&"http"==k.location.protocol||uc(c,"https"),bc(c));md(c.toString(),d);}else K(2);a.u=0;a.c&&a.c.ta(b);Ed(a);Cd(a);}g.fb=function(a){a?K(2):K(1);};function Ed(a){a.u=0;a.m=-1;if(a.c){if(0!=id$1(a.b).length||0!=a.f.length)a.b.c.length=0,pa(a.f),a.f.length=0;a.c.sa();}}
     function Wc(a,b,c){var d=Jc(c);if(""!=d.b)b&&vc(d,b+"."+d.b),wc(d,d.i);else{var e=k.location,f;b?f=b+"."+e.hostname:f=e.hostname;d=Kc(e.protocol,f,+e.port,c);}a.V&&va(a.V,function(h,l){T(d,l,h);});b=a.j;c=a.I;b&&c&&T(d,b,c);T(d,"VER",a.wa);Dd(a,d);return d}g.$=function(a){if(a&&!this.R)throw Error("Can't create secondary domain capable XhrIo object.");a=new X(this.La);a.F=this.R;return a};g.ma=function(){return !!this.c&&!0};g.Y=function(){return this.R};function Od(){}g=Od.prototype;g.va=function(){};
     g.ua=function(){};g.ta=function(){};g.sa=function(){};g.Ta=function(){};function Pd(a){for(var b=arguments[0],c=1;c<arguments.length;c++){var d=arguments[c];if(0==d.lastIndexOf("/",0))b=d;else{var e;(e=""==b)||(e=b.length-1,e=0<=e&&b.indexOf("/",e)==e);e?b+=d:b+="/"+d;}}return b}function Qd(){if(B&&!(10<=Number(Na)))throw Error("Environmental error: no available transport.");}Qd.prototype.a=function(a,b){return new Y(a,b)};
     function Y(a,b){G.call(this);this.a=new Ad(b);this.g=a;this.m=b&&b.testUrl?b.testUrl:Pd(this.g,"test");this.b=b&&b.messageUrlParams||null;a=b&&b.messageHeaders||null;b&&b.clientProtocolHeaderRequired&&(a?a["X-Client-Protocol"]="webchannel":a={"X-Client-Protocol":"webchannel"});this.a.i=a;a=b&&b.initMessageHeaders||null;b&&b.messageContentType&&(a?a["X-WebChannel-Content-Type"]=b.messageContentType:a={"X-WebChannel-Content-Type":b.messageContentType});b&&b.xa&&(a?a["X-WebChannel-Client-Profile"]=b.xa:
@@ -28513,6 +28549,22 @@ var app = (function () {
                 `border-bottom-width: ${t * border_bottom_width}px;`
         };
     }
+    function scale(node, { delay = 0, duration = 400, easing = cubicOut, start = 0, opacity = 0 }) {
+        const style = getComputedStyle(node);
+        const target_opacity = +style.opacity;
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const sd = 1 - start;
+        const od = target_opacity * (1 - opacity);
+        return {
+            delay,
+            duration,
+            easing,
+            css: (_t, u) => `
+			transform: ${transform} scale(${1 - (sd * u)});
+			opacity: ${target_opacity - (od * u)}
+		`
+        };
+    }
 
     /**
      * @license
@@ -28582,29 +28634,24 @@ var app = (function () {
     function get_each_context(ctx, list, i) {
     	const child_ctx = Object.create(ctx);
     	child_ctx.link = list[i];
-    	child_ctx.each_value = list;
-    	child_ctx.link_index = i;
     	return child_ctx;
     }
 
-    // (18:4) {#each $links1 as link}
+    // (58:8) {#each $links1 as link}
     function create_each_block(ctx) {
-    	var label, input, t0, a, t1_value = ctx.link.nome, t1, t2, img, img_src_value, a_href_value, t3, label_transition, current, dispose;
-
-    	function input_change_handler() {
-    		ctx.input_change_handler.call(input, ctx);
-    	}
+    	var label, a0, t0, a0_name_value, t1, a1, t2_value = ctx.link.nome, t2, t3, img, img_src_value, a1_href_value, t4, label_transition, current, dispose;
 
     	return {
     		c: function create() {
     			label = element("label");
-    			input = element("input");
-    			t0 = space();
-    			a = element("a");
-    			t1 = text(t1_value);
-    			t2 = space();
-    			img = element("img");
+    			a0 = element("a");
+    			t0 = text("x");
+    			t1 = space();
+    			a1 = element("a");
+    			t2 = text(t2_value);
     			t3 = space();
+    			img = element("img");
+    			t4 = space();
     			this.h();
     		},
 
@@ -28612,70 +28659,71 @@ var app = (function () {
     			label = claim_element(nodes, "LABEL", {}, false);
     			var label_nodes = children(label);
 
-    			input = claim_element(label_nodes, "INPUT", { class: true, type: true }, false);
-    			var input_nodes = children(input);
+    			a0 = claim_element(label_nodes, "A", { href: true, class: true, name: true }, false);
+    			var a0_nodes = children(a0);
 
-    			input_nodes.forEach(detach);
-    			t0 = claim_text(label_nodes, "\r\n            ");
+    			t0 = claim_text(a0_nodes, "x");
+    			a0_nodes.forEach(detach);
+    			t1 = claim_text(label_nodes, "\r\n                ");
 
-    			a = claim_element(label_nodes, "A", { href: true }, false);
-    			var a_nodes = children(a);
+    			a1 = claim_element(label_nodes, "A", { href: true }, false);
+    			var a1_nodes = children(a1);
 
-    			t1 = claim_text(a_nodes, t1_value);
-    			t2 = claim_text(a_nodes, "\r\n            ");
+    			t2 = claim_text(a1_nodes, t2_value);
+    			t3 = claim_text(a1_nodes, "\r\n                ");
 
-    			img = claim_element(a_nodes, "IMG", { src: true, alt: true }, false);
+    			img = claim_element(a1_nodes, "IMG", { src: true, alt: true }, false);
     			var img_nodes = children(img);
 
     			img_nodes.forEach(detach);
-    			a_nodes.forEach(detach);
-    			t3 = claim_text(label_nodes, "\r\n        ");
+    			a1_nodes.forEach(detach);
+    			t4 = claim_text(label_nodes, "\r\n            ");
     			label_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			input.className = "uk-checkbox";
-    			attr(input, "type", "checkbox");
-    			add_location(input, file$2, 19, 12, 526);
+    			a0.href = "#nav";
+    			a0.className = "deletar svelte-1a8y29o";
+    			attr(a0, "name", a0_name_value = ctx.link.id);
+    			add_location(a0, file$2, 61, 16, 1839);
     			img.src = img_src_value = ctx.link.imagem;
     			img.alt = "";
-    			add_location(img, file$2, 22, 12, 673);
-    			a.href = a_href_value = ctx.link.link;
-    			add_location(a, file$2, 20, 12, 614);
-    			add_location(label, file$2, 18, 8, 488);
-    			dispose = listen(input, "change", input_change_handler);
+    			add_location(img, file$2, 64, 16, 2001);
+    			a1.href = a1_href_value = ctx.link.link;
+    			add_location(a1, file$2, 62, 16, 1930);
+    			add_location(label, file$2, 58, 12, 1647);
+    			dispose = listen(a0, "click", removeItem);
     		},
 
     		m: function mount(target, anchor) {
     			insert(target, label, anchor);
-    			append(label, input);
-
-    			input.checked = ctx.link.selected;
-
-    			append(label, t0);
-    			append(label, a);
-    			append(a, t1);
-    			append(a, t2);
-    			append(a, img);
-    			append(label, t3);
+    			append(label, a0);
+    			append(a0, t0);
+    			append(label, t1);
+    			append(label, a1);
+    			append(a1, t2);
+    			append(a1, t3);
+    			append(a1, img);
+    			append(label, t4);
     			current = true;
     		},
 
-    		p: function update(changed, new_ctx) {
-    			ctx = new_ctx;
-    			if (changed.$links1) input.checked = ctx.link.selected;
+    		p: function update(changed, ctx) {
+    			if ((!current || changed.$links1) && a0_name_value !== (a0_name_value = ctx.link.id)) {
+    				attr(a0, "name", a0_name_value);
+    			}
 
-    			if ((!current || changed.$links1) && t1_value !== (t1_value = ctx.link.nome)) {
-    				set_data(t1, t1_value);
+    			if ((!current || changed.$links1) && t2_value !== (t2_value = ctx.link.nome)) {
+    				set_data(t2, t2_value);
     			}
 
     			if ((!current || changed.$links1) && img_src_value !== (img_src_value = ctx.link.imagem)) {
     				img.src = img_src_value;
     			}
 
-    			if ((!current || changed.$links1) && a_href_value !== (a_href_value = ctx.link.link)) {
-    				a.href = a_href_value;
+    			if ((!current || changed.$links1) && a1_href_value !== (a1_href_value = ctx.link.link)) {
+    				a1.href = a1_href_value;
     			}
     		},
 
@@ -28708,7 +28756,7 @@ var app = (function () {
     }
 
     function create_fragment$4(ctx) {
-    	var each_1_anchor, current;
+    	var div, current;
 
     	var each_value = ctx.$links1;
 
@@ -28733,32 +28781,43 @@ var app = (function () {
 
     	return {
     		c: function create() {
+    			div = element("div");
+
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
-
-    			each_1_anchor = empty();
+    			this.h();
     		},
 
     		l: function claim(nodes) {
+    			div = claim_element(nodes, "DIV", { class: true }, false);
+    			var div_nodes = children(div);
+
     			for (var i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].l(nodes);
+    				each_blocks[i].l(div_nodes);
     			}
 
-    			each_1_anchor = empty();
+    			div_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			div.className = "linksrapidos svelte-1a8y29o";
+    			add_location(div, file$2, 56, 4, 1574);
     		},
 
     		m: function mount(target, anchor) {
+    			insert(target, div, anchor);
+
     			for (var i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(target, anchor);
+    				each_blocks[i].m(div, null);
     			}
 
-    			insert(target, each_1_anchor, anchor);
     			current = true;
     		},
 
     		p: function update(changed, ctx) {
-    			if (changed.$links1) {
+    			if (changed.$links1 || changed.removeItem) {
     				each_value = ctx.$links1;
 
     				for (var i = 0; i < each_value.length; i += 1) {
@@ -28771,7 +28830,7 @@ var app = (function () {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].i(1);
-    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+    						each_blocks[i].m(div, null);
     					}
     				}
 
@@ -28796,44 +28855,45 @@ var app = (function () {
     		},
 
     		d: function destroy(detaching) {
-    			destroy_each(each_blocks, detaching);
-
     			if (detaching) {
-    				detach(each_1_anchor);
+    				detach(div);
     			}
+
+    			destroy_each(each_blocks, detaching);
     		}
     	};
     }
 
+    function removeItem(event) {
+          event.preventDefault();
+          console.log(event.target.name);
+          console.log(event.detail);
+          const id = event.target.name;
+          db$1.collection('links1').doc(id).delete();
+      }
+
     function instance$4($$self, $$props, $$invalidate) {
     	let $links1;
-
-    	
         
-        let { uid } = $$props;
+        let { uid } = $$props; 
         
         const query = db$1.collection('links1').where('uid', '==', uid).orderBy('created');
         const links1 = collectionData(query, 'id').pipe(startWith([])); validate_store(links1, 'links1'); subscribe($$self, links1, $$value => { $links1 = $$value; $$invalidate('$links1', $links1); });
+        // console.log(links1);
+
+        // let selecionado = false;
+        // $: selecionado = links1.filter(t => t.selected).length;
 
     	const writable_props = ['uid'];
     	Object.keys($$props).forEach(key => {
     		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Tab1> was created with unknown prop '${key}'`);
     	});
 
-    	function input_change_handler({ link, each_value, link_index }) {
-    		each_value[link_index].selected = this.checked;
-    	}
-
     	$$self.$set = $$props => {
     		if ('uid' in $$props) $$invalidate('uid', uid = $$props.uid);
     	};
 
-    	return {
-    		uid,
-    		links1,
-    		$links1,
-    		input_change_handler
-    	};
+    	return { uid, links1, $links1 };
     }
 
     class Tab1 extends SvelteComponentDev {
@@ -28861,44 +28921,141 @@ var app = (function () {
 
     const file$3 = "src\\Editor.svelte";
 
-    // (49:0) {#if mostrar}
+    // (68:0) {#if mostrar}
     function create_if_block$1(ctx) {
-    	var div5, div4, div0, span0, t0, input0, t1, div1, span1, t2, input1, t3, div2, span2, t4, input2, t5, div3, button, t6, t7, div5_transition, current, dispose;
+    	var div12, ul0, li0, a0, t0, t1, li1, a1, t2, t3, li2, a2, t4, t5, ul1, li3, div4, div0, span0, t6, input0, t7, div1, span1, t8, input1, t9, div2, span2, t10, input2, t11, div3, button0, t12, t13, t14, li4, div10, div5, span3, t15, input3, t16, div6, span4, t17, input4, t18, div7, span5, t19, input5, t20, div8, span6, t21, input6, t22, div9, button1, t23, t24, t25, li5, div11, span7, t26, input7, t27, button2, t28, div12_transition, current, dispose;
 
-    	var if_block = (ctx.selecionado) && create_if_block_1$1(ctx);
+    	var if_block0 = (ctx.selecionado) && create_if_block_2(ctx);
+
+    	var if_block1 = (ctx.selecionado) && create_if_block_1$1(ctx);
 
     	return {
     		c: function create() {
-    			div5 = element("div");
+    			div12 = element("div");
+    			ul0 = element("ul");
+    			li0 = element("li");
+    			a0 = element("a");
+    			t0 = text("Coluna 1");
+    			t1 = space();
+    			li1 = element("li");
+    			a1 = element("a");
+    			t2 = text("Coluna 2");
+    			t3 = space();
+    			li2 = element("li");
+    			a2 = element("a");
+    			t4 = text("Background");
+    			t5 = space();
+    			ul1 = element("ul");
+    			li3 = element("li");
     			div4 = element("div");
     			div0 = element("div");
     			span0 = element("span");
-    			t0 = space();
+    			t6 = space();
     			input0 = element("input");
-    			t1 = space();
+    			t7 = space();
     			div1 = element("div");
     			span1 = element("span");
-    			t2 = space();
+    			t8 = space();
     			input1 = element("input");
-    			t3 = space();
+    			t9 = space();
     			div2 = element("div");
     			span2 = element("span");
-    			t4 = space();
+    			t10 = space();
     			input2 = element("input");
-    			t5 = space();
+    			t11 = space();
     			div3 = element("div");
-    			button = element("button");
-    			t6 = text("Adicionar");
-    			t7 = space();
-    			if (if_block) if_block.c();
+    			button0 = element("button");
+    			t12 = text("Adicionar");
+    			t13 = space();
+    			if (if_block0) if_block0.c();
+    			t14 = space();
+    			li4 = element("li");
+    			div10 = element("div");
+    			div5 = element("div");
+    			span3 = element("span");
+    			t15 = space();
+    			input3 = element("input");
+    			t16 = space();
+    			div6 = element("div");
+    			span4 = element("span");
+    			t17 = space();
+    			input4 = element("input");
+    			t18 = space();
+    			div7 = element("div");
+    			span5 = element("span");
+    			t19 = space();
+    			input5 = element("input");
+    			t20 = space();
+    			div8 = element("div");
+    			span6 = element("span");
+    			t21 = space();
+    			input6 = element("input");
+    			t22 = space();
+    			div9 = element("div");
+    			button1 = element("button");
+    			t23 = text("Adicionar");
+    			t24 = space();
+    			if (if_block1) if_block1.c();
+    			t25 = space();
+    			li5 = element("li");
+    			div11 = element("div");
+    			span7 = element("span");
+    			t26 = space();
+    			input7 = element("input");
+    			t27 = space();
+    			button2 = element("button");
+    			t28 = text("Adicionar");
     			this.h();
     		},
 
     		l: function claim(nodes) {
-    			div5 = claim_element(nodes, "DIV", { class: true }, false);
-    			var div5_nodes = children(div5);
+    			div12 = claim_element(nodes, "DIV", { class: true }, false);
+    			var div12_nodes = children(div12);
 
-    			div4 = claim_element(div5_nodes, "DIV", { class: true }, false);
+    			ul0 = claim_element(div12_nodes, "UL", { class: true, "uk-switcher": true }, false);
+    			var ul0_nodes = children(ul0);
+
+    			li0 = claim_element(ul0_nodes, "LI", {}, false);
+    			var li0_nodes = children(li0);
+
+    			a0 = claim_element(li0_nodes, "A", { href: true, class: true }, false);
+    			var a0_nodes = children(a0);
+
+    			t0 = claim_text(a0_nodes, "Coluna 1");
+    			a0_nodes.forEach(detach);
+    			li0_nodes.forEach(detach);
+    			t1 = claim_text(ul0_nodes, "\r\n            ");
+
+    			li1 = claim_element(ul0_nodes, "LI", {}, false);
+    			var li1_nodes = children(li1);
+
+    			a1 = claim_element(li1_nodes, "A", { href: true, class: true }, false);
+    			var a1_nodes = children(a1);
+
+    			t2 = claim_text(a1_nodes, "Coluna 2");
+    			a1_nodes.forEach(detach);
+    			li1_nodes.forEach(detach);
+    			t3 = claim_text(ul0_nodes, "\r\n            ");
+
+    			li2 = claim_element(ul0_nodes, "LI", {}, false);
+    			var li2_nodes = children(li2);
+
+    			a2 = claim_element(li2_nodes, "A", { href: true, class: true }, false);
+    			var a2_nodes = children(a2);
+
+    			t4 = claim_text(a2_nodes, "Background");
+    			a2_nodes.forEach(detach);
+    			li2_nodes.forEach(detach);
+    			ul0_nodes.forEach(detach);
+    			t5 = claim_text(div12_nodes, "\r\n        ");
+
+    			ul1 = claim_element(div12_nodes, "UL", { class: true }, false);
+    			var ul1_nodes = children(ul1);
+
+    			li3 = claim_element(ul1_nodes, "LI", {}, false);
+    			var li3_nodes = children(li3);
+
+    			div4 = claim_element(li3_nodes, "DIV", { class: true }, false);
     			var div4_nodes = children(div4);
 
     			div0 = claim_element(div4_nodes, "DIV", { class: true }, false);
@@ -28908,14 +29065,14 @@ var app = (function () {
     			var span0_nodes = children(span0);
 
     			span0_nodes.forEach(detach);
-    			t0 = claim_text(div0_nodes, "\r\n                ");
+    			t6 = claim_text(div0_nodes, "\r\n                            ");
 
     			input0 = claim_element(div0_nodes, "INPUT", { class: true, type: true }, false);
     			var input0_nodes = children(input0);
 
     			input0_nodes.forEach(detach);
     			div0_nodes.forEach(detach);
-    			t1 = claim_text(div4_nodes, "\r\n            ");
+    			t7 = claim_text(div4_nodes, "\r\n                        ");
 
     			div1 = claim_element(div4_nodes, "DIV", { class: true }, false);
     			var div1_nodes = children(div1);
@@ -28924,14 +29081,14 @@ var app = (function () {
     			var span1_nodes = children(span1);
 
     			span1_nodes.forEach(detach);
-    			t2 = claim_text(div1_nodes, "\r\n                ");
+    			t8 = claim_text(div1_nodes, "\r\n                            ");
 
     			input1 = claim_element(div1_nodes, "INPUT", { class: true, type: true }, false);
     			var input1_nodes = children(input1);
 
     			input1_nodes.forEach(detach);
     			div1_nodes.forEach(detach);
-    			t3 = claim_text(div4_nodes, "\r\n            ");
+    			t9 = claim_text(div4_nodes, "\r\n                        ");
 
     			div2 = claim_element(div4_nodes, "DIV", { class: true }, false);
     			var div2_nodes = children(div2);
@@ -28940,108 +29097,370 @@ var app = (function () {
     			var span2_nodes = children(span2);
 
     			span2_nodes.forEach(detach);
-    			t4 = claim_text(div2_nodes, "\r\n                ");
+    			t10 = claim_text(div2_nodes, "\r\n                            ");
 
     			input2 = claim_element(div2_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
     			var input2_nodes = children(input2);
 
     			input2_nodes.forEach(detach);
     			div2_nodes.forEach(detach);
-    			t5 = claim_text(div4_nodes, "\r\n\r\n            ");
+    			t11 = claim_text(div4_nodes, "\r\n\r\n                        ");
 
     			div3 = claim_element(div4_nodes, "DIV", { class: true, "uk-grid": true }, false);
     			var div3_nodes = children(div3);
 
-    			button = claim_element(div3_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
-    			var button_nodes = children(button);
+    			button0 = claim_element(div3_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button0_nodes = children(button0);
 
-    			t6 = claim_text(button_nodes, "Adicionar");
-    			button_nodes.forEach(detach);
-    			t7 = claim_text(div3_nodes, "            \r\n                ");
-    			if (if_block) if_block.l(div3_nodes);
+    			t12 = claim_text(button0_nodes, "Adicionar");
+    			button0_nodes.forEach(detach);
+    			t13 = claim_text(div3_nodes, "            \r\n                            ");
+    			if (if_block0) if_block0.l(div3_nodes);
     			div3_nodes.forEach(detach);
     			div4_nodes.forEach(detach);
+    			li3_nodes.forEach(detach);
+    			t14 = claim_text(ul1_nodes, "\r\n            ");
+
+    			li4 = claim_element(ul1_nodes, "LI", {}, false);
+    			var li4_nodes = children(li4);
+
+    			div10 = claim_element(li4_nodes, "DIV", { class: true }, false);
+    			var div10_nodes = children(div10);
+
+    			div5 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div5_nodes = children(div5);
+
+    			span3 = claim_element(div5_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span3_nodes = children(span3);
+
+    			span3_nodes.forEach(detach);
+    			t15 = claim_text(div5_nodes, "\r\n                            ");
+
+    			input3 = claim_element(div5_nodes, "INPUT", { class: true, type: true }, false);
+    			var input3_nodes = children(input3);
+
+    			input3_nodes.forEach(detach);
     			div5_nodes.forEach(detach);
+    			t16 = claim_text(div10_nodes, "\r\n                        ");
+
+    			div6 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div6_nodes = children(div6);
+
+    			span4 = claim_element(div6_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span4_nodes = children(span4);
+
+    			span4_nodes.forEach(detach);
+    			t17 = claim_text(div6_nodes, "\r\n                            ");
+
+    			input4 = claim_element(div6_nodes, "INPUT", { class: true, type: true }, false);
+    			var input4_nodes = children(input4);
+
+    			input4_nodes.forEach(detach);
+    			div6_nodes.forEach(detach);
+    			t18 = claim_text(div10_nodes, "\r\n                        ");
+
+    			div7 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div7_nodes = children(div7);
+
+    			span5 = claim_element(div7_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span5_nodes = children(span5);
+
+    			span5_nodes.forEach(detach);
+    			t19 = claim_text(div7_nodes, "\r\n                            ");
+
+    			input5 = claim_element(div7_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input5_nodes = children(input5);
+
+    			input5_nodes.forEach(detach);
+    			div7_nodes.forEach(detach);
+    			t20 = claim_text(div10_nodes, "\r\n                        ");
+
+    			div8 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			var div8_nodes = children(div8);
+
+    			span6 = claim_element(div8_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span6_nodes = children(span6);
+
+    			span6_nodes.forEach(detach);
+    			t21 = claim_text(div8_nodes, "\r\n                            ");
+
+    			input6 = claim_element(div8_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input6_nodes = children(input6);
+
+    			input6_nodes.forEach(detach);
+    			div8_nodes.forEach(detach);
+    			t22 = claim_text(div10_nodes, "\r\n\r\n                        ");
+
+    			div9 = claim_element(div10_nodes, "DIV", { class: true, "uk-grid": true }, false);
+    			var div9_nodes = children(div9);
+
+    			button1 = claim_element(div9_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button1_nodes = children(button1);
+
+    			t23 = claim_text(button1_nodes, "Adicionar");
+    			button1_nodes.forEach(detach);
+    			t24 = claim_text(div9_nodes, "            \r\n                            ");
+    			if (if_block1) if_block1.l(div9_nodes);
+    			div9_nodes.forEach(detach);
+    			div10_nodes.forEach(detach);
+    			li4_nodes.forEach(detach);
+    			t25 = claim_text(ul1_nodes, "\r\n            ");
+
+    			li5 = claim_element(ul1_nodes, "LI", {}, false);
+    			var li5_nodes = children(li5);
+
+    			div11 = claim_element(li5_nodes, "DIV", { class: true }, false);
+    			var div11_nodes = children(div11);
+
+    			span7 = claim_element(div11_nodes, "SPAN", { class: true, "uk-icon": true }, false);
+    			var span7_nodes = children(span7);
+
+    			span7_nodes.forEach(detach);
+    			t26 = claim_text(div11_nodes, "\r\n                        ");
+
+    			input7 = claim_element(div11_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input7_nodes = children(input7);
+
+    			input7_nodes.forEach(detach);
+    			t27 = claim_text(div11_nodes, "\r\n                        ");
+
+    			button2 = claim_element(div11_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button2_nodes = children(button2);
+
+    			t28 = claim_text(button2_nodes, "Adicionar");
+    			button2_nodes.forEach(detach);
+    			div11_nodes.forEach(detach);
+    			li5_nodes.forEach(detach);
+    			ul1_nodes.forEach(detach);
+    			div12_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
+    			a0.href = "#";
+    			a0.className = "uk-button uk-button-default";
+    			add_location(a0, file$3, 71, 16, 1965);
+    			add_location(li0, file$3, 71, 12, 1961);
+    			a1.href = "#";
+    			a1.className = "uk-button uk-button-default";
+    			add_location(a1, file$3, 72, 16, 2048);
+    			add_location(li1, file$3, 72, 12, 2044);
+    			a2.href = "#";
+    			a2.className = "uk-button uk-button-default";
+    			add_location(a2, file$3, 73, 16, 2131);
+    			add_location(li2, file$3, 73, 12, 2127);
+    			ul0.className = "uk-subnav uk-subnav-pill svelte-7z5yy1";
+    			attr(ul0, "uk-switcher", "");
+    			add_location(ul0, file$3, 70, 8, 1898);
     			span0.className = "uk-form-icon";
     			attr(span0, "uk-icon", "icon: comment");
-    			add_location(span0, file$3, 53, 16, 1377);
+    			add_location(span0, file$3, 79, 28, 2406);
     			input0.className = "uk-input uk-width-1-1";
     			attr(input0, "type", "text");
-    			add_location(input0, file$3, 54, 16, 1453);
-    			div0.className = "uk-inline linha svelte-1hgxap1";
-    			add_location(div0, file$3, 52, 12, 1330);
+    			add_location(input0, file$3, 80, 28, 2494);
+    			div0.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div0, file$3, 78, 24, 2347);
     			span1.className = "uk-form-icon";
     			attr(span1, "uk-icon", "icon: link");
-    			add_location(span1, file$3, 58, 16, 1722);
+    			add_location(span1, file$3, 84, 28, 2811);
     			input1.className = "uk-input uk-width-1-1";
     			attr(input1, "type", "text");
-    			add_location(input1, file$3, 59, 16, 1795);
-    			div1.className = "uk-inline linha svelte-1hgxap1";
-    			add_location(div1, file$3, 57, 12, 1675);
+    			add_location(input1, file$3, 85, 28, 2896);
+    			div1.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div1, file$3, 83, 24, 2752);
     			span2.className = "uk-form-icon";
     			attr(span2, "uk-icon", "icon: link");
-    			add_location(span2, file$3, 62, 16, 1946);
+    			add_location(span2, file$3, 88, 28, 3083);
     			input2.className = "uk-input uk-width-1-1";
     			attr(input2, "type", "text");
     			input2.placeholder = "url da imagem";
-    			add_location(input2, file$3, 63, 16, 2019);
-    			div2.className = "uk-inline linha svelte-1hgxap1";
-    			add_location(div2, file$3, 61, 12, 1899);
-    			attr(button, "uk-icon", "icon: plus-circle");
-    			button.className = "uk-button uk-button-default uk-width-1-1";
-    			add_location(button, file$3, 67, 16, 2253);
-    			div3.className = "uk-grid-small uk-child-width-expand@s uk-text-center linha svelte-1hgxap1";
+    			add_location(input2, file$3, 89, 28, 3168);
+    			div2.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div2, file$3, 87, 24, 3024);
+    			attr(button0, "uk-icon", "icon: plus-circle");
+    			button0.className = "uk-button uk-button-default uk-width-1-1";
+    			add_location(button0, file$3, 93, 28, 3438);
+    			div3.className = "uk-grid-small uk-child-width-expand@s uk-text-center linha svelte-7z5yy1";
     			attr(div3, "uk-grid", "");
-    			add_location(div3, file$3, 66, 12, 2155);
-    			div4.className = "formeditor svelte-1hgxap1";
-    			add_location(div4, file$3, 51, 8, 1292);
-    			div5.className = "uk-card uk-card-primary uk-padding svelte-1hgxap1";
-    			add_location(div5, file$3, 49, 4, 1206);
+    			add_location(div3, file$3, 92, 24, 3328);
+    			div4.className = "formeditor svelte-7z5yy1";
+    			add_location(div4, file$3, 77, 20, 2297);
+    			add_location(li3, file$3, 76, 12, 2271);
+    			span3.className = "uk-form-icon";
+    			attr(span3, "uk-icon", "icon: comment");
+    			add_location(span3, file$3, 104, 28, 4228);
+    			input3.className = "uk-input uk-width-1-1";
+    			attr(input3, "type", "text");
+    			add_location(input3, file$3, 105, 28, 4316);
+    			div5.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div5, file$3, 103, 24, 4169);
+    			span4.className = "uk-form-icon";
+    			attr(span4, "uk-icon", "icon: link");
+    			add_location(span4, file$3, 109, 28, 4633);
+    			input4.className = "uk-input uk-width-1-1";
+    			attr(input4, "type", "text");
+    			add_location(input4, file$3, 110, 28, 4718);
+    			div6.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div6, file$3, 108, 24, 4574);
+    			span5.className = "uk-form-icon";
+    			attr(span5, "uk-icon", "icon: link");
+    			add_location(span5, file$3, 113, 28, 4905);
+    			input5.className = "uk-input uk-width-1-1";
+    			attr(input5, "type", "text");
+    			input5.placeholder = "url da imagem";
+    			add_location(input5, file$3, 114, 28, 4990);
+    			div7.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div7, file$3, 112, 24, 4846);
+    			span6.className = "uk-form-icon";
+    			attr(span6, "uk-icon", "icon: link");
+    			add_location(span6, file$3, 117, 28, 5207);
+    			input6.className = "uk-input uk-width-1-1";
+    			attr(input6, "type", "text");
+    			input6.placeholder = "url da imagem";
+    			add_location(input6, file$3, 118, 28, 5292);
+    			div8.className = "uk-inline linha svelte-7z5yy1";
+    			add_location(div8, file$3, 116, 24, 5148);
+    			attr(button1, "uk-icon", "icon: plus-circle");
+    			button1.className = "uk-button uk-button-default uk-width-1-1";
+    			add_location(button1, file$3, 122, 28, 5562);
+    			div9.className = "uk-grid-small uk-child-width-expand@s uk-text-center linha svelte-7z5yy1";
+    			attr(div9, "uk-grid", "");
+    			add_location(div9, file$3, 121, 24, 5452);
+    			div10.className = "formeditor svelte-7z5yy1";
+    			add_location(div10, file$3, 102, 20, 4119);
+    			add_location(li4, file$3, 101, 12, 4093);
+    			span7.className = "uk-form-icon";
+    			attr(span7, "uk-icon", "icon: link");
+    			add_location(span7, file$3, 132, 24, 6298);
+    			input7.className = "uk-input uk-width-1-1";
+    			attr(input7, "type", "text");
+    			input7.placeholder = "fundo";
+    			add_location(input7, file$3, 133, 24, 6379);
+    			attr(button2, "uk-icon", "icon: plus-circle");
+    			button2.className = "uk-button uk-button-default uk-width-1-1";
+    			add_location(button2, file$3, 134, 24, 6496);
+    			div11.className = "uk-inline linha";
+    			add_location(div11, file$3, 131, 20, 6243);
+    			add_location(li5, file$3, 130, 12, 6217);
+    			ul1.className = "uk-switcher uk-margin svelte-7z5yy1";
+    			add_location(ul1, file$3, 75, 8, 2223);
+    			div12.className = "uk-card uk-card-primary uk-padding svelte-7z5yy1";
+    			add_location(div12, file$3, 68, 4, 1820);
 
     			dispose = [
     				listen(input0, "input", ctx.input0_input_handler),
     				listen(input1, "input", ctx.input1_input_handler),
     				listen(input2, "input", ctx.input2_input_handler),
-    				listen(button, "click", ctx.gravar)
+    				listen(button0, "click", ctx.gravar),
+    				listen(input3, "input", ctx.input3_input_handler),
+    				listen(input4, "input", ctx.input4_input_handler),
+    				listen(input5, "input", ctx.input5_input_handler),
+    				listen(input6, "input", ctx.input6_input_handler),
+    				listen(button1, "click", ctx.gravar),
+    				listen(input7, "input", ctx.input7_input_handler),
+    				listen(button2, "click", ctx.mudarFundo)
     			];
     		},
 
     		m: function mount(target, anchor) {
-    			insert(target, div5, anchor);
-    			append(div5, div4);
+    			insert(target, div12, anchor);
+    			append(div12, ul0);
+    			append(ul0, li0);
+    			append(li0, a0);
+    			append(a0, t0);
+    			append(ul0, t1);
+    			append(ul0, li1);
+    			append(li1, a1);
+    			append(a1, t2);
+    			append(ul0, t3);
+    			append(ul0, li2);
+    			append(li2, a2);
+    			append(a2, t4);
+    			append(div12, t5);
+    			append(div12, ul1);
+    			append(ul1, li3);
+    			append(li3, div4);
     			append(div4, div0);
     			append(div0, span0);
-    			append(div0, t0);
+    			append(div0, t6);
     			append(div0, input0);
 
     			input0.value = ctx.nome;
 
-    			append(div4, t1);
+    			append(div4, t7);
     			append(div4, div1);
     			append(div1, span1);
-    			append(div1, t2);
+    			append(div1, t8);
     			append(div1, input1);
 
     			input1.value = ctx.link;
 
-    			append(div4, t3);
+    			append(div4, t9);
     			append(div4, div2);
     			append(div2, span2);
-    			append(div2, t4);
+    			append(div2, t10);
     			append(div2, input2);
 
     			input2.value = ctx.imagem;
 
-    			append(div4, t5);
+    			append(div4, t11);
     			append(div4, div3);
-    			append(div3, button);
-    			append(button, t6);
-    			append(div3, t7);
-    			if (if_block) if_block.m(div3, null);
+    			append(div3, button0);
+    			append(button0, t12);
+    			append(div3, t13);
+    			if (if_block0) if_block0.m(div3, null);
+    			append(ul1, t14);
+    			append(ul1, li4);
+    			append(li4, div10);
+    			append(div10, div5);
+    			append(div5, span3);
+    			append(div5, t15);
+    			append(div5, input3);
+
+    			input3.value = ctx.nome;
+
+    			append(div10, t16);
+    			append(div10, div6);
+    			append(div6, span4);
+    			append(div6, t17);
+    			append(div6, input4);
+
+    			input4.value = ctx.link;
+
+    			append(div10, t18);
+    			append(div10, div7);
+    			append(div7, span5);
+    			append(div7, t19);
+    			append(div7, input5);
+
+    			input5.value = ctx.imagem;
+
+    			append(div10, t20);
+    			append(div10, div8);
+    			append(div8, span6);
+    			append(div8, t21);
+    			append(div8, input6);
+
+    			input6.value = ctx.imagem;
+
+    			append(div10, t22);
+    			append(div10, div9);
+    			append(div9, button1);
+    			append(button1, t23);
+    			append(div9, t24);
+    			if (if_block1) if_block1.m(div9, null);
+    			append(ul1, t25);
+    			append(ul1, li5);
+    			append(li5, div11);
+    			append(div11, span7);
+    			append(div11, t26);
+    			append(div11, input7);
+
+    			input7.value = ctx.fundo;
+
+    			append(div11, t27);
+    			append(div11, button2);
+    			append(button2, t28);
     			current = true;
     		},
 
@@ -29051,45 +29470,66 @@ var app = (function () {
     			if (changed.imagem && (input2.value !== ctx.imagem)) input2.value = ctx.imagem;
 
     			if (ctx.selecionado) {
-    				if (if_block) {
-    					if_block.p(changed, ctx);
+    				if (if_block0) {
+    					if_block0.p(changed, ctx);
     				} else {
-    					if_block = create_if_block_1$1(ctx);
-    					if_block.c();
-    					if_block.m(div3, null);
+    					if_block0 = create_if_block_2(ctx);
+    					if_block0.c();
+    					if_block0.m(div3, null);
     				}
-    			} else if (if_block) {
-    				if_block.d(1);
-    				if_block = null;
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
     			}
+
+    			if (changed.nome && (input3.value !== ctx.nome)) input3.value = ctx.nome;
+    			if (changed.link && (input4.value !== ctx.link)) input4.value = ctx.link;
+    			if (changed.imagem && (input5.value !== ctx.imagem)) input5.value = ctx.imagem;
+    			if (changed.imagem && (input6.value !== ctx.imagem)) input6.value = ctx.imagem;
+
+    			if (ctx.selecionado) {
+    				if (if_block1) {
+    					if_block1.p(changed, ctx);
+    				} else {
+    					if_block1 = create_if_block_1$1(ctx);
+    					if_block1.c();
+    					if_block1.m(div9, null);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+
+    			if (changed.fundo && (input7.value !== ctx.fundo)) input7.value = ctx.fundo;
     		},
 
     		i: function intro(local) {
     			if (current) return;
     			add_render_callback(() => {
-    				if (!div5_transition) div5_transition = create_bidirectional_transition(div5, slide, {}, true);
-    				div5_transition.run(1);
+    				if (!div12_transition) div12_transition = create_bidirectional_transition(div12, slide, {}, true);
+    				div12_transition.run(1);
     			});
 
     			current = true;
     		},
 
     		o: function outro(local) {
-    			if (!div5_transition) div5_transition = create_bidirectional_transition(div5, slide, {}, false);
-    			div5_transition.run(0);
+    			if (!div12_transition) div12_transition = create_bidirectional_transition(div12, slide, {}, false);
+    			div12_transition.run(0);
 
     			current = false;
     		},
 
     		d: function destroy(detaching) {
     			if (detaching) {
-    				detach(div5);
+    				detach(div12);
     			}
 
-    			if (if_block) if_block.d();
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
 
     			if (detaching) {
-    				if (div5_transition) div5_transition.end();
+    				if (div12_transition) div12_transition.end();
     			}
 
     			run_all(dispose);
@@ -29097,7 +29537,74 @@ var app = (function () {
     	};
     }
 
-    // (69:16) {#if selecionado}
+    // (95:28) {#if selecionado}
+    function create_if_block_2(ctx) {
+    	var button0, t0, t1, button1, t2, dispose;
+
+    	return {
+    		c: function create() {
+    			button0 = element("button");
+    			t0 = text("Editar");
+    			t1 = space();
+    			button1 = element("button");
+    			t2 = text("Remover");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			button0 = claim_element(nodes, "BUTTON", { "uk-icon": true, class: true, style: true }, false);
+    			var button0_nodes = children(button0);
+
+    			t0 = claim_text(button0_nodes, "Editar");
+    			button0_nodes.forEach(detach);
+    			t1 = claim_text(nodes, "\r\n                                ");
+
+    			button1 = claim_element(nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			var button1_nodes = children(button1);
+
+    			t2 = claim_text(button1_nodes, "Remover");
+    			button1_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			attr(button0, "uk-icon", "icon: file-edit");
+    			button0.className = "uk-button  uk-width-1-2";
+    			set_style(button0, "background-color", "green");
+    			add_location(button0, file$3, 95, 32, 3654);
+    			attr(button1, "uk-icon", "icon: minus-circle");
+    			button1.className = "uk-button uk-button-danger uk-width-1-2";
+    			add_location(button1, file$3, 96, 32, 3821);
+
+    			dispose = [
+    				listen(button0, "click", ctx.editar),
+    				listen(button1, "click", ctx.remover)
+    			];
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, button0, anchor);
+    			append(button0, t0);
+    			insert(target, t1, anchor);
+    			insert(target, button1, anchor);
+    			append(button1, t2);
+    		},
+
+    		p: noop,
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(button0);
+    				detach(t1);
+    				detach(button1);
+    			}
+
+    			run_all(dispose);
+    		}
+    	};
+    }
+
+    // (124:28) {#if selecionado}
     function create_if_block_1$1(ctx) {
     	var button0, t0, t1, button1, t2, dispose;
 
@@ -29117,7 +29624,7 @@ var app = (function () {
 
     			t0 = claim_text(button0_nodes, "Editar");
     			button0_nodes.forEach(detach);
-    			t1 = claim_text(nodes, "\r\n                ");
+    			t1 = claim_text(nodes, "\r\n                                ");
 
     			button1 = claim_element(nodes, "BUTTON", { "uk-icon": true, class: true }, false);
     			var button1_nodes = children(button1);
@@ -29131,10 +29638,10 @@ var app = (function () {
     			attr(button0, "uk-icon", "icon: file-edit");
     			button0.className = "uk-button  uk-width-1-2";
     			set_style(button0, "background-color", "green");
-    			add_location(button0, file$3, 69, 16, 2441);
+    			add_location(button0, file$3, 124, 32, 5778);
     			attr(button1, "uk-icon", "icon: minus-circle");
     			button1.className = "uk-button uk-button-danger uk-width-1-2";
-    			add_location(button1, file$3, 70, 16, 2592);
+    			add_location(button1, file$3, 125, 32, 5945);
 
     			dispose = [
     				listen(button0, "click", ctx.editar),
@@ -29165,25 +29672,33 @@ var app = (function () {
     }
 
     function create_fragment$5(ctx) {
-    	var div, t, button, button_uk_icon_value, current, dispose;
+    	var style, t0, div, t1, button, button_uk_icon_value, current, dispose;
 
     	var if_block = (ctx.mostrar) && create_if_block$1(ctx);
 
     	return {
     		c: function create() {
+    			style = element("style");
+    			t0 = space();
     			div = element("div");
     			if (if_block) if_block.c();
-    			t = space();
+    			t1 = space();
     			button = element("button");
     			this.h();
     		},
 
     		l: function claim(nodes) {
+    			style = claim_element(nodes, "STYLE", { class: true }, false);
+    			var style_nodes = children(style);
+
+    			style_nodes.forEach(detach);
+    			t0 = claim_text(nodes, "\r\n\r\n");
+
     			div = claim_element(nodes, "DIV", { class: true }, false);
     			var div_nodes = children(div);
 
     			if (if_block) if_block.l(div_nodes);
-    			t = claim_text(div_nodes, "\r\n");
+    			t1 = claim_text(div_nodes, "\r\n");
 
     			button = claim_element(div_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
     			var button_nodes = children(button);
@@ -29194,18 +29709,22 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
+    			style.className = "svelte-7z5yy1";
+    			add_location(style, file$3, 41, 4, 1243);
     			attr(button, "uk-icon", button_uk_icon_value = "icon: " + (ctx.mostrar ? 'minus-circle' : 'plus-circle'));
     			button.className = "uk-button uk-button-primary";
-    			add_location(button, file$3, 77, 0, 2818);
-    			div.className = "uk-scope svelte-1hgxap1";
-    			add_location(div, file$3, 47, 0, 1163);
+    			add_location(button, file$3, 142, 0, 6722);
+    			div.className = "uk-scope svelte-7z5yy1";
+    			add_location(div, file$3, 66, 0, 1777);
     			dispose = listen(button, "click", ctx.toggleMostrar);
     		},
 
     		m: function mount(target, anchor) {
+    			append(document.head, style);
+    			insert(target, t0, anchor);
     			insert(target, div, anchor);
     			if (if_block) if_block.m(div, null);
-    			append(div, t);
+    			append(div, t1);
     			append(div, button);
     			current = true;
     		},
@@ -29219,7 +29738,7 @@ var app = (function () {
     					if_block = create_if_block$1(ctx);
     					if_block.c();
     					if_block.i(1);
-    					if_block.m(div, t);
+    					if_block.m(div, t1);
     				}
     			} else if (if_block) {
     				group_outros();
@@ -29249,7 +29768,10 @@ var app = (function () {
     		},
 
     		d: function destroy(detaching) {
+    			detach(style);
+
     			if (detaching) {
+    				detach(t0);
     				detach(div);
     			}
 
@@ -29263,14 +29785,24 @@ var app = (function () {
     	
         const dispatch = createEventDispatcher();
 
-        let { link, imagem, nome, id, selecionado, itemsTab1 } = $$props;
+        let fundo = 'abstract';
+
+        function mudarFundo(){
+            console.log(fundo);
+            document.getElementsByTagName("body")[0].classList.add('fundo');
+            var elem = document.querySelector('.fundo');
+            elem.style.backgroundImage = 'url(https://source.unsplash.com/random/?'+fundo+')';
+        }
+
+        let { link, imagem, nome, selecionado, itemsTab1 } = $$props;
 
         function remover(){
             dispatch("remover");
         }
         function gravar(e){
             console.log('uid ='+uid);
-            dispatch("salvar", {id:uid, nome:nome, link:link, img:imagem, selected:false});
+            // dispatch("salvar", {uid:uid, nome:nome, link:link, img:imagem, selected:false});
+            dispatch("salvar", {nome:nome, link:link, imagem:imagem});
         }
         function editar(e){
             dispatch("editar", {id:id, nome:nome, link:link, img:imagem, selected:false});
@@ -29279,7 +29811,7 @@ var app = (function () {
         let mostrar = false;
         const toggleMostrar = () => { const $$result = (mostrar = !mostrar); $$invalidate('mostrar', mostrar); return $$result; };
 
-    	const writable_props = ['link', 'imagem', 'nome', 'id', 'selecionado', 'itemsTab1'];
+    	const writable_props = ['link', 'imagem', 'nome', 'selecionado', 'itemsTab1'];
     	Object.keys($$props).forEach(key => {
     		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Editor> was created with unknown prop '${key}'`);
     	});
@@ -29299,11 +29831,35 @@ var app = (function () {
     		$$invalidate('imagem', imagem);
     	}
 
+    	function input3_input_handler() {
+    		nome = this.value;
+    		$$invalidate('nome', nome);
+    	}
+
+    	function input4_input_handler() {
+    		link = this.value;
+    		$$invalidate('link', link);
+    	}
+
+    	function input5_input_handler() {
+    		imagem = this.value;
+    		$$invalidate('imagem', imagem);
+    	}
+
+    	function input6_input_handler() {
+    		imagem = this.value;
+    		$$invalidate('imagem', imagem);
+    	}
+
+    	function input7_input_handler() {
+    		fundo = this.value;
+    		$$invalidate('fundo', fundo);
+    	}
+
     	$$self.$set = $$props => {
     		if ('link' in $$props) $$invalidate('link', link = $$props.link);
     		if ('imagem' in $$props) $$invalidate('imagem', imagem = $$props.imagem);
     		if ('nome' in $$props) $$invalidate('nome', nome = $$props.nome);
-    		if ('id' in $$props) $$invalidate('id', id = $$props.id);
     		if ('selecionado' in $$props) $$invalidate('selecionado', selecionado = $$props.selecionado);
     		if ('itemsTab1' in $$props) $$invalidate('itemsTab1', itemsTab1 = $$props.itemsTab1);
     	};
@@ -29315,10 +29871,11 @@ var app = (function () {
     	};
 
     	return {
+    		fundo,
+    		mudarFundo,
     		link,
     		imagem,
     		nome,
-    		id,
     		selecionado,
     		itemsTab1,
     		remover,
@@ -29328,14 +29885,19 @@ var app = (function () {
     		toggleMostrar,
     		input0_input_handler,
     		input1_input_handler,
-    		input2_input_handler
+    		input2_input_handler,
+    		input3_input_handler,
+    		input4_input_handler,
+    		input5_input_handler,
+    		input6_input_handler,
+    		input7_input_handler
     	};
     }
 
     class Editor extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, ["link", "imagem", "nome", "id", "selecionado", "itemsTab1"]);
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, ["link", "imagem", "nome", "selecionado", "itemsTab1"]);
 
     		const { ctx } = this.$$;
     		const props = options.props || {};
@@ -29347,9 +29909,6 @@ var app = (function () {
     		}
     		if (ctx.nome === undefined && !('nome' in props)) {
     			console.warn("<Editor> was created without expected prop 'nome'");
-    		}
-    		if (ctx.id === undefined && !('id' in props)) {
-    			console.warn("<Editor> was created without expected prop 'id'");
     		}
     		if (ctx.selecionado === undefined && !('selecionado' in props)) {
     			console.warn("<Editor> was created without expected prop 'selecionado'");
@@ -29383,14 +29942,6 @@ var app = (function () {
     		throw new Error("<Editor>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
-    	get id() {
-    		throw new Error("<Editor>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set id(value) {
-    		throw new Error("<Editor>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
     	get selecionado() {
     		throw new Error("<Editor>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
@@ -29412,9 +29963,9 @@ var app = (function () {
 
     const file$4 = "src\\TodoItem.svelte";
 
-    // (34:0) {:else}
+    // (39:0) {:else}
     function create_else_block$1(ctx) {
-    	var span, t0, t1, button, t2, dispose;
+    	var span, t0, t1, button, dispose;
 
     	return {
     		c: function create() {
@@ -29422,29 +29973,30 @@ var app = (function () {
     			t0 = text(ctx.text);
     			t1 = space();
     			button = element("button");
-    			t2 = text("❌");
     			this.h();
     		},
 
     		l: function claim(nodes) {
-    			span = claim_element(nodes, "SPAN", {}, false);
+    			span = claim_element(nodes, "SPAN", { class: true }, false);
     			var span_nodes = children(span);
 
     			t0 = claim_text(span_nodes, ctx.text);
     			span_nodes.forEach(detach);
     			t1 = claim_text(nodes, "\r\n    ");
 
-    			button = claim_element(nodes, "BUTTON", {}, false);
+    			button = claim_element(nodes, "BUTTON", { class: true, "uk-icon": true }, false);
     			var button_nodes = children(button);
 
-    			t2 = claim_text(button_nodes, "❌");
     			button_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			add_location(span, file$4, 34, 4, 674);
-    			add_location(button, file$4, 35, 4, 701);
+    			span.className = "svelte-wurhqi";
+    			add_location(span, file$4, 39, 4, 894);
+    			button.className = "uk-icon-button uk-margin-small-right";
+    			attr(button, "uk-icon", "close");
+    			add_location(button, file$4, 40, 4, 921);
     			dispose = listen(button, "click", ctx.toggleStatus);
     		},
 
@@ -29453,7 +30005,6 @@ var app = (function () {
     			append(span, t0);
     			insert(target, t1, anchor);
     			insert(target, button, anchor);
-    			append(button, t2);
     		},
 
     		p: function update(changed, ctx) {
@@ -29474,9 +30025,9 @@ var app = (function () {
     	};
     }
 
-    // (31:0) {#if complete}
+    // (36:0) {#if complete}
     function create_if_block$2(ctx) {
-    	var span, t0, t1, button, t2, dispose;
+    	var span, t0, t1, button, dispose;
 
     	return {
     		c: function create() {
@@ -29484,7 +30035,6 @@ var app = (function () {
     			t0 = text(ctx.text);
     			t1 = space();
     			button = element("button");
-    			t2 = text("✔️");
     			this.h();
     		},
 
@@ -29496,18 +30046,19 @@ var app = (function () {
     			span_nodes.forEach(detach);
     			t1 = claim_text(nodes, "\r\n    ");
 
-    			button = claim_element(nodes, "BUTTON", {}, false);
+    			button = claim_element(nodes, "BUTTON", { class: true, "uk-icon": true }, false);
     			var button_nodes = children(button);
 
-    			t2 = claim_text(button_nodes, "✔️");
     			button_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			span.className = "is-complete svelte-137s8ue";
-    			add_location(span, file$4, 31, 4, 567);
-    			add_location(button, file$4, 32, 4, 614);
+    			span.className = "is-complete svelte-wurhqi";
+    			add_location(span, file$4, 36, 4, 730);
+    			button.className = "uk-icon-button uk-margin-small-right";
+    			attr(button, "uk-icon", "check");
+    			add_location(button, file$4, 37, 4, 777);
     			dispose = listen(button, "click", ctx.toggleStatus);
     		},
 
@@ -29516,7 +30067,6 @@ var app = (function () {
     			append(span, t0);
     			insert(target, t1, anchor);
     			insert(target, button, anchor);
-    			append(button, t2);
     		},
 
     		p: function update(changed, ctx) {
@@ -29538,7 +30088,7 @@ var app = (function () {
     }
 
     function create_fragment$6(ctx) {
-    	var li, t0, button, t1, dispose;
+    	var li, t, button, li_transition, current, dispose;
 
     	function select_block_type(ctx) {
     		if (ctx.complete) return create_if_block$2;
@@ -29552,40 +30102,41 @@ var app = (function () {
     		c: function create() {
     			li = element("li");
     			if_block.c();
-    			t0 = space();
+    			t = space();
     			button = element("button");
-    			t1 = text("🗑");
     			this.h();
     		},
 
     		l: function claim(nodes) {
-    			li = claim_element(nodes, "LI", {}, false);
+    			li = claim_element(nodes, "LI", { class: true }, false);
     			var li_nodes = children(li);
 
     			if_block.l(li_nodes);
-    			t0 = claim_text(li_nodes, "\r\n");
+    			t = claim_text(li_nodes, "\r\n    ");
 
-    			button = claim_element(li_nodes, "BUTTON", {}, false);
+    			button = claim_element(li_nodes, "BUTTON", { class: true, "uk-icon": true }, false);
     			var button_nodes = children(button);
 
-    			t1 = claim_text(button_nodes, "🗑");
     			button_nodes.forEach(detach);
     			li_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			add_location(button, file$4, 37, 0, 754);
-    			add_location(li, file$4, 29, 0, 541);
+    			button.className = "uk-icon-button uk-margin-small-right";
+    			attr(button, "uk-icon", "trash");
+    			add_location(button, file$4, 42, 4, 1036);
+    			li.className = "svelte-wurhqi";
+    			add_location(li, file$4, 34, 0, 687);
     			dispose = listen(button, "click", ctx.remove);
     		},
 
     		m: function mount(target, anchor) {
     			insert(target, li, anchor);
     			if_block.m(li, null);
-    			append(li, t0);
+    			append(li, t);
     			append(li, button);
-    			append(button, t1);
+    			current = true;
     		},
 
     		p: function update(changed, ctx) {
@@ -29596,13 +30147,27 @@ var app = (function () {
     				if_block = current_block_type(ctx);
     				if (if_block) {
     					if_block.c();
-    					if_block.m(li, t0);
+    					if_block.m(li, t);
     				}
     			}
     		},
 
-    		i: noop,
-    		o: noop,
+    		i: function intro(local) {
+    			if (current) return;
+    			add_render_callback(() => {
+    				if (!li_transition) li_transition = create_bidirectional_transition(li, scale, {}, true);
+    				li_transition.run(1);
+    			});
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (!li_transition) li_transition = create_bidirectional_transition(li, scale, {}, false);
+    			li_transition.run(0);
+
+    			current = false;
+    		},
 
     		d: function destroy(detaching) {
     			if (detaching) {
@@ -29610,13 +30175,20 @@ var app = (function () {
     			}
 
     			if_block.d();
+
+    			if (detaching) {
+    				if (li_transition) li_transition.end();
+    			}
+
     			dispose();
     		}
     	};
     }
 
     function instance$6($$self, $$props, $$invalidate) {
-    	const dispatch = createEventDispatcher();
+    	
+
+        const dispatch = createEventDispatcher();
         
         function remove() {
     		dispatch('remove', { id });
@@ -29699,7 +30271,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (40:1) {#each $todos as todo}
+    // (42:1) {#each $todos as todo}
     function create_each_block$1(ctx) {
     	var current;
 
@@ -29712,7 +30284,7 @@ var app = (function () {
     		todoitem_props = assign(todoitem_props, todoitem_spread_levels[i]);
     	}
     	var todoitem = new TodoItem({ props: todoitem_props, $$inline: true });
-    	todoitem.$on("remove", removeItem);
+    	todoitem.$on("remove", removeItem$1);
     	todoitem.$on("toggle", updateStatus);
 
     	return {
@@ -29755,7 +30327,7 @@ var app = (function () {
     }
 
     function create_fragment$7(ctx) {
-    	var ul, t0, input, t1, button, t2, current, dispose;
+    	var h2, t0, t1, div, ul, t2, input, t3, button, t4, current, dispose;
 
     	var each_value = ctx.$todos;
 
@@ -29780,22 +30352,36 @@ var app = (function () {
 
     	return {
     		c: function create() {
+    			h2 = element("h2");
+    			t0 = text("Lembrar");
+    			t1 = space();
+    			div = element("div");
     			ul = element("ul");
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t0 = space();
+    			t2 = space();
     			input = element("input");
-    			t1 = space();
+    			t3 = space();
     			button = element("button");
-    			t2 = text("Add Task");
+    			t4 = text("Adicionar");
     			this.h();
     		},
 
     		l: function claim(nodes) {
-    			ul = claim_element(nodes, "UL", {}, false);
+    			h2 = claim_element(nodes, "H2", {}, false);
+    			var h2_nodes = children(h2);
+
+    			t0 = claim_text(h2_nodes, "Lembrar");
+    			h2_nodes.forEach(detach);
+    			t1 = claim_text(nodes, "\r\n");
+
+    			div = claim_element(nodes, "DIV", { class: true }, false);
+    			var div_nodes = children(div);
+
+    			ul = claim_element(div_nodes, "UL", { class: true }, false);
     			var ul_nodes = children(ul);
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
@@ -29803,27 +30389,33 @@ var app = (function () {
     			}
 
     			ul_nodes.forEach(detach);
-    			t0 = claim_text(nodes, "\r\n\r\n");
+    			t2 = claim_text(div_nodes, "\r\n");
 
-    			input = claim_element(nodes, "INPUT", { class: true }, false);
+    			input = claim_element(div_nodes, "INPUT", { class: true }, false);
     			var input_nodes = children(input);
 
     			input_nodes.forEach(detach);
-    			t1 = claim_text(nodes, "\r\n\r\n");
+    			t3 = claim_text(div_nodes, "\r\n");
 
-    			button = claim_element(nodes, "BUTTON", {}, false);
+    			button = claim_element(div_nodes, "BUTTON", { class: true }, false);
     			var button_nodes = children(button);
 
-    			t2 = claim_text(button_nodes, "Add Task");
+    			t4 = claim_text(button_nodes, "Adicionar");
     			button_nodes.forEach(detach);
+    			div_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			add_location(ul, file$5, 38, 0, 1092);
-    			input.className = "svelte-11sq6sw";
-    			add_location(input, file$5, 46, 0, 1234);
-    			add_location(button, file$5, 48, 0, 1263);
+    			add_location(h2, file$5, 38, 0, 1098);
+    			ul.className = "uk-list uk-list-medium uk-list-divider";
+    			add_location(ul, file$5, 40, 1, 1151);
+    			input.className = "uk-input uk-margin svelte-11sq6sw";
+    			add_location(input, file$5, 47, 0, 1338);
+    			button.className = "uk-button uk-button-primary";
+    			add_location(button, file$5, 48, 0, 1392);
+    			div.className = "uk-card uk-padding";
+    			add_location(div, file$5, 39, 0, 1116);
 
     			dispose = [
     				listen(input, "input", ctx.input_input_handler),
@@ -29832,20 +30424,24 @@ var app = (function () {
     		},
 
     		m: function mount(target, anchor) {
-    			insert(target, ul, anchor);
+    			insert(target, h2, anchor);
+    			append(h2, t0);
+    			insert(target, t1, anchor);
+    			insert(target, div, anchor);
+    			append(div, ul);
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(ul, null);
     			}
 
-    			insert(target, t0, anchor);
-    			insert(target, input, anchor);
+    			append(div, t2);
+    			append(div, input);
 
     			input.value = ctx.text;
 
-    			insert(target, t1, anchor);
-    			insert(target, button, anchor);
-    			append(button, t2);
+    			append(div, t3);
+    			append(div, button);
+    			append(button, t4);
     			current = true;
     		},
 
@@ -29891,17 +30487,12 @@ var app = (function () {
 
     		d: function destroy(detaching) {
     			if (detaching) {
-    				detach(ul);
+    				detach(h2);
+    				detach(t1);
+    				detach(div);
     			}
 
     			destroy_each(each_blocks, detaching);
-
-    			if (detaching) {
-    				detach(t0);
-    				detach(input);
-    				detach(t1);
-    				detach(button);
-    			}
 
     			run_all(dispose);
     		}
@@ -29914,7 +30505,7 @@ var app = (function () {
         db$1.collection('todos').doc(id).update({ complete: newStatus });
     }
 
-    function removeItem(event) {
+    function removeItem$1(event) {
         console.log(event.detail);
         const { id } = event.detail;
         db$1.collection('todos').doc(id).delete();
@@ -29929,7 +30520,8 @@ var app = (function () {
         let { uid } = $$props;
 
         // Form Text
-        let text = 'some task';
+        let text = 'lorem ipsum';
+        
 
         // Query requires an index, see screenshot below
         const query = db$1.collection('todos').where('uid', '==', uid).orderBy('created');
@@ -29989,7 +30581,7 @@ var app = (function () {
 
     const file$6 = "src\\Home.svelte";
 
-    // (124:10) {#if uid}
+    // (142:10) {#if uid}
     function create_if_block$3(ctx) {
     	var t, current;
 
@@ -30061,7 +30653,7 @@ var app = (function () {
     }
 
     function create_fragment$8(ctx) {
-    	var div10, div0, t0, div8, div1, t1, t2, div2, h10, t3, t4, a0, t5, img0, t6, a1, t7, img1, t8, a2, t9, img2, t10, a3, t11, t12, h20, t13, t14, a4, t15, t16, a5, t17, t18, h21, t19, t20, a6, t21, t22, a7, t23, t24, a8, t25, t26, a9, t27, t28, a10, t29, t30, a11, t31, t32, a12, t33, t34, a13, t35, t36, a14, t37, t38, h22, t39, t40, a15, t41, t42, a16, t43, t44, a17, t45, t46, a18, t47, t48, div7, h11, t49, t50, h23, t51, t52, h30, t53, b0, t54, t55, div3, a19, t56, t57, a20, t58, t59, h31, t60, b1, t61, t62, div4, a21, t63, t64, a22, t65, t66, h32, t67, b2, t68, div5, a23, t69, t70, a24, t71, t72, h33, t73, b3, t74, div6, a25, t75, t76, a26, t77, t78, h24, t79, t80, a27, t81, t82, h25, t83, t84, a28, t85, t86, a29, t87, t88, div9, current;
+    	var t0, div17, div0, t1, div8, div1, t2, div2, h10, t3, t4, a0, t5, img0, t6, a1, t7, img1, t8, a2, t9, img2, t10, a3, t11, t12, h20, t13, t14, a4, t15, t16, a5, t17, t18, a6, t19, t20, h21, t21, t22, a7, t23, t24, a8, t25, t26, a9, t27, t28, a10, t29, t30, a11, t31, t32, a12, t33, t34, a13, t35, t36, a14, t37, t38, a15, t39, t40, h22, t41, t42, a16, t43, t44, a17, t45, t46, a18, t47, t48, a19, t49, t50, div7, h11, t51, t52, h23, t53, t54, h30, t55, b0, t56, t57, div3, a20, t58, t59, a21, t60, t61, h31, t62, b1, t63, t64, div4, a22, t65, t66, a23, t67, t68, h32, t69, b2, t70, div5, a24, t71, t72, a25, t73, t74, h33, t75, b3, t76, div6, a26, t77, t78, a27, t79, t80, h24, t81, t82, a28, t83, t84, h25, t85, t86, a29, t87, t88, a30, t89, t90, div16, div9, t91, t92, div10, t93, t94, div11, t95, t96, div12, t97, t98, div13, t99, t100, div14, img3, t101, div15, img4, current, dispose;
 
     	var editor = new Editor({
     		props: {
@@ -30070,11 +30662,11 @@ var app = (function () {
     		nome: ctx.nome,
     		link: ctx.link,
     		imagem: ctx.imagem,
-    		id: ctx.id
+    		idItem: ctx.idItem
     	},
     		$$inline: true
     	});
-    	editor.$on("remover", ctx.remove);
+    	editor.$on("remover", remove);
     	editor.$on("salvar", ctx.salvar);
     	editor.$on("editar", ctx.editar);
 
@@ -30082,13 +30674,13 @@ var app = (function () {
 
     	return {
     		c: function create() {
-    			div10 = element("div");
-    			div0 = element("div");
+    			editor.$$.fragment.c();
     			t0 = space();
+    			div17 = element("div");
+    			div0 = element("div");
+    			t1 = space();
     			div8 = element("div");
     			div1 = element("div");
-    			editor.$$.fragment.c();
-    			t1 = space();
     			if (if_block) if_block.c();
     			t2 = space();
     			div2 = element("div");
@@ -30108,7 +30700,7 @@ var app = (function () {
     			img2 = element("img");
     			t10 = space();
     			a3 = element("a");
-    			t11 = text("Asana");
+    			t11 = text("RuTracker");
     			t12 = space();
     			h20 = element("h2");
     			t13 = text("Sites de Imagens");
@@ -30119,141 +30711,165 @@ var app = (function () {
     			a5 = element("a");
     			t17 = text("Pexels");
     			t18 = space();
-    			h21 = element("h2");
-    			t19 = text("CSS");
-    			t20 = space();
     			a6 = element("a");
-    			t21 = text("CSS GRADIENT");
+    			t19 = text("Unsplash");
+    			t20 = space();
+    			h21 = element("h2");
+    			t21 = text("CSS");
     			t22 = space();
     			a7 = element("a");
-    			t23 = text("ICON FINDER");
+    			t23 = text("CSS GRADIENT");
     			t24 = space();
     			a8 = element("a");
-    			t25 = text("Animista - presets de animações");
+    			t25 = text("ICON FINDER");
     			t26 = space();
     			a9 = element("a");
-    			t27 = text("Loading.io");
+    			t27 = text("Animista - presets de animações");
     			t28 = space();
     			a10 = element("a");
-    			t29 = text("Coolors - cores, paletas");
+    			t29 = text("Loading.io");
     			t30 = space();
     			a11 = element("a");
-    			t31 = text("Clippy - SVG formas geometricas");
+    			t31 = text("Coolors - cores, paletas");
     			t32 = space();
     			a12 = element("a");
-    			t33 = text("SVG Backgrounds");
+    			t33 = text("Clippy - SVG formas geometricas");
     			t34 = space();
     			a13 = element("a");
-    			t35 = text("Triangulos backgrounds");
+    			t35 = text("SVG Backgrounds");
     			t36 = space();
     			a14 = element("a");
-    			t37 = text("Keyframes.app");
+    			t37 = text("Triangulos backgrounds");
     			t38 = space();
-    			h22 = element("h2");
-    			t39 = text("Inspiração");
-    			t40 = space();
     			a15 = element("a");
-    			t41 = text("Evernote Design");
+    			t39 = text("Keyframes.app");
+    			t40 = space();
+    			h22 = element("h2");
+    			t41 = text("Inspiração");
     			t42 = space();
     			a16 = element("a");
-    			t43 = text("Webframe");
+    			t43 = text("Evernote Design");
     			t44 = space();
     			a17 = element("a");
-    			t45 = text("Dribble");
+    			t45 = text("Webframe");
     			t46 = space();
     			a18 = element("a");
-    			t47 = text("Dribble 2");
+    			t47 = text("Dribble");
     			t48 = space();
+    			a19 = element("a");
+    			t49 = text("Dribble 2");
+    			t50 = space();
     			div7 = element("div");
     			h11 = element("h1");
-    			t49 = text("Work");
-    			t50 = space();
-    			h23 = element("h2");
-    			t51 = text("Servidores");
+    			t51 = text("Work");
     			t52 = space();
+    			h23 = element("h2");
+    			t53 = text("Servidores");
+    			t54 = space();
     			h30 = element("h3");
-    			t53 = text("Contabo  \r\n        ");
+    			t55 = text("Contabo  \r\n        ");
     			b0 = element("b");
-    			t54 = text("6");
-    			t55 = space();
-    			div3 = element("div");
-    			a19 = element("a");
-    			t56 = text("Rancher");
+    			t56 = text("6");
     			t57 = space();
+    			div3 = element("div");
     			a20 = element("a");
-    			t58 = text("PMA");
+    			t58 = text("Rancher");
     			t59 = space();
-    			h31 = element("h3");
-    			t60 = text("Contabo  \r\n        ");
-    			b1 = element("b");
-    			t61 = text("8");
-    			t62 = space();
-    			div4 = element("div");
     			a21 = element("a");
-    			t63 = text("Rancher");
+    			t60 = text("PMA");
+    			t61 = space();
+    			h31 = element("h3");
+    			t62 = text("Contabo  \r\n        ");
+    			b1 = element("b");
+    			t63 = text("8");
     			t64 = space();
+    			div4 = element("div");
     			a22 = element("a");
-    			t65 = text("PMA");
+    			t65 = text("Rancher");
     			t66 = space();
-    			h32 = element("h3");
-    			t67 = text("Hetzner  \r\n        ");
-    			b2 = element("b");
-    			t68 = space();
-    			div5 = element("div");
     			a23 = element("a");
-    			t69 = text("Rancher");
+    			t67 = text("PMA");
+    			t68 = space();
+    			h32 = element("h3");
+    			t69 = text("Hetzner  \r\n        ");
+    			b2 = element("b");
     			t70 = space();
+    			div5 = element("div");
     			a24 = element("a");
-    			t71 = text("PMA");
+    			t71 = text("Rancher");
     			t72 = space();
-    			h33 = element("h3");
-    			t73 = text("Hetzner  2\r\n        ");
-    			b3 = element("b");
-    			t74 = space();
-    			div6 = element("div");
     			a25 = element("a");
-    			t75 = text("Rancher");
+    			t73 = text("PMA");
+    			t74 = space();
+    			h33 = element("h3");
+    			t75 = text("Hetzner  2\r\n        ");
+    			b3 = element("b");
     			t76 = space();
+    			div6 = element("div");
     			a26 = element("a");
-    			t77 = text("PMA");
+    			t77 = text("Rancher");
     			t78 = space();
-    			h24 = element("h2");
-    			t79 = text("Github");
-    			t80 = space();
     			a27 = element("a");
-    			t81 = text("Github relato");
+    			t79 = text("PMA");
+    			t80 = space();
+    			h24 = element("h2");
+    			t81 = text("Github");
     			t82 = space();
-    			h25 = element("h2");
-    			t83 = text("Mautic");
-    			t84 = space();
     			a28 = element("a");
-    			t85 = text("Guia Powertic");
+    			t83 = text("Github relato");
+    			t84 = space();
+    			h25 = element("h2");
+    			t85 = text("Mautic");
     			t86 = space();
     			a29 = element("a");
-    			t87 = text("Luizeof");
+    			t87 = text("Guia Powertic");
     			t88 = space();
+    			a30 = element("a");
+    			t89 = text("Luizeof");
+    			t90 = space();
+    			div16 = element("div");
     			div9 = element("div");
+    			t91 = text("424964");
+    			t92 = space();
+    			div10 = element("div");
+    			t93 = text("1A1423");
+    			t94 = space();
+    			div11 = element("div");
+    			t95 = text("E26D5A");
+    			t96 = space();
+    			div12 = element("div");
+    			t97 = text("FFC857");
+    			t98 = space();
+    			div13 = element("div");
+    			t99 = text("1F2041");
+    			t100 = space();
+    			div14 = element("div");
+    			img3 = element("img");
+    			t101 = space();
+    			div15 = element("div");
+    			img4 = element("img");
     			this.h();
     		},
 
     		l: function claim(nodes) {
-    			div10 = claim_element(nodes, "DIV", { class: true }, false);
-    			var div10_nodes = children(div10);
+    			editor.$$.fragment.l(nodes);
+    			t0 = claim_text(nodes, "\r\n\r\n");
 
-    			div0 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			div17 = claim_element(nodes, "DIV", { class: true }, false);
+    			var div17_nodes = children(div17);
+
+    			div0 = claim_element(div17_nodes, "DIV", { class: true }, false);
     			var div0_nodes = children(div0);
 
     			div0_nodes.forEach(detach);
-    			t0 = claim_text(div10_nodes, "\r\n\r\n  ");
+    			t1 = claim_text(div17_nodes, "\r\n\r\n  ");
 
-    			div8 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			div8 = claim_element(div17_nodes, "DIV", { class: true }, false);
     			var div8_nodes = children(div8);
 
     			div1 = claim_element(div8_nodes, "DIV", { class: true }, false);
     			var div1_nodes = children(div1);
 
-    			editor.$$.fragment.l(div1_nodes);
-    			t1 = claim_text(div1_nodes, "\r\n\r\n            \r\n          ");
     			if (if_block) if_block.l(div1_nodes);
     			div1_nodes.forEach(detach);
     			t2 = claim_text(div8_nodes, "\r\n\r\n    ");
@@ -30302,141 +30918,148 @@ var app = (function () {
 
     			img2_nodes.forEach(detach);
     			a2_nodes.forEach(detach);
-    			t10 = claim_text(div2_nodes, "\r\n      ");
+    			t10 = claim_text(div2_nodes, "\r\n      \r\n      ");
 
     			a3 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a3_nodes = children(a3);
 
-    			t11 = claim_text(a3_nodes, "Asana");
+    			t11 = claim_text(a3_nodes, "RuTracker");
     			a3_nodes.forEach(detach);
-    			t12 = claim_text(div2_nodes, "\r\n      ");
+    			t12 = claim_text(div2_nodes, "\r\n      \r\n      ");
 
     			h20 = claim_element(div2_nodes, "H2", {}, false);
     			var h20_nodes = children(h20);
 
     			t13 = claim_text(h20_nodes, "Sites de Imagens");
     			h20_nodes.forEach(detach);
-    			t14 = claim_text(div2_nodes, "\r\n      ");
+    			t14 = claim_text(div2_nodes, "\r\n        ");
 
     			a4 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a4_nodes = children(a4);
 
     			t15 = claim_text(a4_nodes, "PXHere");
     			a4_nodes.forEach(detach);
-    			t16 = claim_text(div2_nodes, "\r\n      ");
+    			t16 = claim_text(div2_nodes, "\r\n        ");
 
     			a5 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a5_nodes = children(a5);
 
     			t17 = claim_text(a5_nodes, "Pexels");
     			a5_nodes.forEach(detach);
-    			t18 = claim_text(div2_nodes, "\r\n      ");
-
-    			h21 = claim_element(div2_nodes, "H2", { class: true }, false);
-    			var h21_nodes = children(h21);
-
-    			t19 = claim_text(h21_nodes, "CSS");
-    			h21_nodes.forEach(detach);
-    			t20 = claim_text(div2_nodes, "\r\n      ");
+    			t18 = claim_text(div2_nodes, "\r\n        ");
 
     			a6 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a6_nodes = children(a6);
 
-    			t21 = claim_text(a6_nodes, "CSS GRADIENT");
+    			t19 = claim_text(a6_nodes, "Unsplash");
     			a6_nodes.forEach(detach);
-    			t22 = claim_text(div2_nodes, "\r\n      ");
+    			t20 = claim_text(div2_nodes, "\r\n\r\n      ");
+
+    			h21 = claim_element(div2_nodes, "H2", { class: true }, false);
+    			var h21_nodes = children(h21);
+
+    			t21 = claim_text(h21_nodes, "CSS");
+    			h21_nodes.forEach(detach);
+    			t22 = claim_text(div2_nodes, "\r\n        ");
 
     			a7 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a7_nodes = children(a7);
 
-    			t23 = claim_text(a7_nodes, "ICON FINDER");
+    			t23 = claim_text(a7_nodes, "CSS GRADIENT");
     			a7_nodes.forEach(detach);
-    			t24 = claim_text(div2_nodes, "\r\n      ");
+    			t24 = claim_text(div2_nodes, "\r\n        ");
 
     			a8 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a8_nodes = children(a8);
 
-    			t25 = claim_text(a8_nodes, "Animista - presets de animações");
+    			t25 = claim_text(a8_nodes, "ICON FINDER");
     			a8_nodes.forEach(detach);
-    			t26 = claim_text(div2_nodes, "\r\n      ");
+    			t26 = claim_text(div2_nodes, "\r\n        ");
 
     			a9 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a9_nodes = children(a9);
 
-    			t27 = claim_text(a9_nodes, "Loading.io");
+    			t27 = claim_text(a9_nodes, "Animista - presets de animações");
     			a9_nodes.forEach(detach);
-    			t28 = claim_text(div2_nodes, "\r\n      ");
+    			t28 = claim_text(div2_nodes, "\r\n        ");
 
     			a10 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a10_nodes = children(a10);
 
-    			t29 = claim_text(a10_nodes, "Coolors - cores, paletas");
+    			t29 = claim_text(a10_nodes, "Loading.io");
     			a10_nodes.forEach(detach);
-    			t30 = claim_text(div2_nodes, "\r\n      ");
+    			t30 = claim_text(div2_nodes, "\r\n        ");
 
     			a11 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a11_nodes = children(a11);
 
-    			t31 = claim_text(a11_nodes, "Clippy - SVG formas geometricas");
+    			t31 = claim_text(a11_nodes, "Coolors - cores, paletas");
     			a11_nodes.forEach(detach);
-    			t32 = claim_text(div2_nodes, "\r\n      ");
+    			t32 = claim_text(div2_nodes, "\r\n        ");
 
     			a12 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a12_nodes = children(a12);
 
-    			t33 = claim_text(a12_nodes, "SVG Backgrounds");
+    			t33 = claim_text(a12_nodes, "Clippy - SVG formas geometricas");
     			a12_nodes.forEach(detach);
-    			t34 = claim_text(div2_nodes, "\r\n      ");
+    			t34 = claim_text(div2_nodes, "\r\n        ");
 
     			a13 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a13_nodes = children(a13);
 
-    			t35 = claim_text(a13_nodes, "Triangulos backgrounds");
+    			t35 = claim_text(a13_nodes, "SVG Backgrounds");
     			a13_nodes.forEach(detach);
-    			t36 = claim_text(div2_nodes, "\r\n      ");
+    			t36 = claim_text(div2_nodes, "\r\n        ");
 
     			a14 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a14_nodes = children(a14);
 
-    			t37 = claim_text(a14_nodes, "Keyframes.app");
+    			t37 = claim_text(a14_nodes, "Triangulos backgrounds");
     			a14_nodes.forEach(detach);
-    			t38 = claim_text(div2_nodes, "\r\n      ");
-
-    			h22 = claim_element(div2_nodes, "H2", {}, false);
-    			var h22_nodes = children(h22);
-
-    			t39 = claim_text(h22_nodes, "Inspiração");
-    			h22_nodes.forEach(detach);
-    			t40 = claim_text(div2_nodes, "\r\n      ");
+    			t38 = claim_text(div2_nodes, "\r\n        ");
 
     			a15 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a15_nodes = children(a15);
 
-    			t41 = claim_text(a15_nodes, "Evernote Design");
+    			t39 = claim_text(a15_nodes, "Keyframes.app");
     			a15_nodes.forEach(detach);
+    			t40 = claim_text(div2_nodes, "\r\n      ");
+
+    			h22 = claim_element(div2_nodes, "H2", {}, false);
+    			var h22_nodes = children(h22);
+
+    			t41 = claim_text(h22_nodes, "Inspiração");
+    			h22_nodes.forEach(detach);
     			t42 = claim_text(div2_nodes, "\r\n      ");
 
     			a16 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a16_nodes = children(a16);
 
-    			t43 = claim_text(a16_nodes, "Webframe");
+    			t43 = claim_text(a16_nodes, "Evernote Design");
     			a16_nodes.forEach(detach);
     			t44 = claim_text(div2_nodes, "\r\n      ");
 
     			a17 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a17_nodes = children(a17);
 
-    			t45 = claim_text(a17_nodes, "Dribble");
+    			t45 = claim_text(a17_nodes, "Webframe");
     			a17_nodes.forEach(detach);
     			t46 = claim_text(div2_nodes, "\r\n      ");
 
     			a18 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a18_nodes = children(a18);
 
-    			t47 = claim_text(a18_nodes, "Dribble 2");
+    			t47 = claim_text(a18_nodes, "Dribble");
     			a18_nodes.forEach(detach);
+    			t48 = claim_text(div2_nodes, "\r\n      ");
+
+    			a19 = claim_element(div2_nodes, "A", { href: true }, false);
+    			var a19_nodes = children(a19);
+
+    			t49 = claim_text(a19_nodes, "Dribble 2");
+    			a19_nodes.forEach(detach);
     			div2_nodes.forEach(detach);
-    			t48 = claim_text(div8_nodes, "\r\n    ");
+    			t50 = claim_text(div8_nodes, "\r\n    ");
 
     			div7 = claim_element(div8_nodes, "DIV", { class: true }, false);
     			var div7_nodes = children(div7);
@@ -30444,306 +31067,384 @@ var app = (function () {
     			h11 = claim_element(div7_nodes, "H1", {}, false);
     			var h11_nodes = children(h11);
 
-    			t49 = claim_text(h11_nodes, "Work");
+    			t51 = claim_text(h11_nodes, "Work");
     			h11_nodes.forEach(detach);
-    			t50 = claim_text(div7_nodes, "\r\n      ");
+    			t52 = claim_text(div7_nodes, "\r\n      ");
 
     			h23 = claim_element(div7_nodes, "H2", { class: true }, false);
     			var h23_nodes = children(h23);
 
-    			t51 = claim_text(h23_nodes, "Servidores");
+    			t53 = claim_text(h23_nodes, "Servidores");
     			h23_nodes.forEach(detach);
-    			t52 = claim_text(div7_nodes, "\r\n      ");
+    			t54 = claim_text(div7_nodes, "\r\n      ");
 
     			h30 = claim_element(div7_nodes, "H3", {}, false);
     			var h30_nodes = children(h30);
 
-    			t53 = claim_text(h30_nodes, "Contabo  \r\n        ");
+    			t55 = claim_text(h30_nodes, "Contabo  \r\n        ");
 
     			b0 = claim_element(h30_nodes, "B", {}, false);
     			var b0_nodes = children(b0);
 
-    			t54 = claim_text(b0_nodes, "6");
+    			t56 = claim_text(b0_nodes, "6");
     			b0_nodes.forEach(detach);
     			h30_nodes.forEach(detach);
-    			t55 = claim_text(div7_nodes, "\r\n      ");
+    			t57 = claim_text(div7_nodes, "\r\n      ");
 
     			div3 = claim_element(div7_nodes, "DIV", { class: true }, false);
     			var div3_nodes = children(div3);
 
-    			a19 = claim_element(div3_nodes, "A", { href: true }, false);
-    			var a19_nodes = children(a19);
-
-    			t56 = claim_text(a19_nodes, "Rancher");
-    			a19_nodes.forEach(detach);
-    			t57 = claim_text(div3_nodes, "\r\n        ");
-
     			a20 = claim_element(div3_nodes, "A", { href: true }, false);
     			var a20_nodes = children(a20);
 
-    			t58 = claim_text(a20_nodes, "PMA");
+    			t58 = claim_text(a20_nodes, "Rancher");
     			a20_nodes.forEach(detach);
+    			t59 = claim_text(div3_nodes, "\r\n        ");
+
+    			a21 = claim_element(div3_nodes, "A", { href: true }, false);
+    			var a21_nodes = children(a21);
+
+    			t60 = claim_text(a21_nodes, "PMA");
+    			a21_nodes.forEach(detach);
     			div3_nodes.forEach(detach);
-    			t59 = claim_text(div7_nodes, "\r\n      ");
+    			t61 = claim_text(div7_nodes, "\r\n      ");
 
     			h31 = claim_element(div7_nodes, "H3", {}, false);
     			var h31_nodes = children(h31);
 
-    			t60 = claim_text(h31_nodes, "Contabo  \r\n        ");
+    			t62 = claim_text(h31_nodes, "Contabo  \r\n        ");
 
     			b1 = claim_element(h31_nodes, "B", {}, false);
     			var b1_nodes = children(b1);
 
-    			t61 = claim_text(b1_nodes, "8");
+    			t63 = claim_text(b1_nodes, "8");
     			b1_nodes.forEach(detach);
     			h31_nodes.forEach(detach);
-    			t62 = claim_text(div7_nodes, "\r\n      ");
+    			t64 = claim_text(div7_nodes, "\r\n      ");
 
     			div4 = claim_element(div7_nodes, "DIV", { class: true }, false);
     			var div4_nodes = children(div4);
 
-    			a21 = claim_element(div4_nodes, "A", { href: true }, false);
-    			var a21_nodes = children(a21);
-
-    			t63 = claim_text(a21_nodes, "Rancher");
-    			a21_nodes.forEach(detach);
-    			t64 = claim_text(div4_nodes, "\r\n        ");
-
     			a22 = claim_element(div4_nodes, "A", { href: true }, false);
     			var a22_nodes = children(a22);
 
-    			t65 = claim_text(a22_nodes, "PMA");
+    			t65 = claim_text(a22_nodes, "Rancher");
     			a22_nodes.forEach(detach);
+    			t66 = claim_text(div4_nodes, "\r\n        ");
+
+    			a23 = claim_element(div4_nodes, "A", { href: true }, false);
+    			var a23_nodes = children(a23);
+
+    			t67 = claim_text(a23_nodes, "PMA");
+    			a23_nodes.forEach(detach);
     			div4_nodes.forEach(detach);
-    			t66 = claim_text(div7_nodes, "\r\n      ");
+    			t68 = claim_text(div7_nodes, "\r\n      ");
 
     			h32 = claim_element(div7_nodes, "H3", {}, false);
     			var h32_nodes = children(h32);
 
-    			t67 = claim_text(h32_nodes, "Hetzner  \r\n        ");
+    			t69 = claim_text(h32_nodes, "Hetzner  \r\n        ");
 
     			b2 = claim_element(h32_nodes, "B", {}, false);
     			var b2_nodes = children(b2);
 
     			b2_nodes.forEach(detach);
     			h32_nodes.forEach(detach);
-    			t68 = claim_text(div7_nodes, "\r\n      ");
+    			t70 = claim_text(div7_nodes, "\r\n      ");
 
     			div5 = claim_element(div7_nodes, "DIV", { class: true }, false);
     			var div5_nodes = children(div5);
 
-    			a23 = claim_element(div5_nodes, "A", { href: true }, false);
-    			var a23_nodes = children(a23);
-
-    			t69 = claim_text(a23_nodes, "Rancher");
-    			a23_nodes.forEach(detach);
-    			t70 = claim_text(div5_nodes, "\r\n        ");
-
     			a24 = claim_element(div5_nodes, "A", { href: true }, false);
     			var a24_nodes = children(a24);
 
-    			t71 = claim_text(a24_nodes, "PMA");
+    			t71 = claim_text(a24_nodes, "Rancher");
     			a24_nodes.forEach(detach);
+    			t72 = claim_text(div5_nodes, "\r\n        ");
+
+    			a25 = claim_element(div5_nodes, "A", { href: true }, false);
+    			var a25_nodes = children(a25);
+
+    			t73 = claim_text(a25_nodes, "PMA");
+    			a25_nodes.forEach(detach);
     			div5_nodes.forEach(detach);
-    			t72 = claim_text(div7_nodes, "\r\n      ");
+    			t74 = claim_text(div7_nodes, "\r\n      ");
 
     			h33 = claim_element(div7_nodes, "H3", {}, false);
     			var h33_nodes = children(h33);
 
-    			t73 = claim_text(h33_nodes, "Hetzner  2\r\n        ");
+    			t75 = claim_text(h33_nodes, "Hetzner  2\r\n        ");
 
     			b3 = claim_element(h33_nodes, "B", {}, false);
     			var b3_nodes = children(b3);
 
     			b3_nodes.forEach(detach);
     			h33_nodes.forEach(detach);
-    			t74 = claim_text(div7_nodes, "\r\n      ");
+    			t76 = claim_text(div7_nodes, "\r\n      ");
 
     			div6 = claim_element(div7_nodes, "DIV", { class: true }, false);
     			var div6_nodes = children(div6);
 
-    			a25 = claim_element(div6_nodes, "A", { href: true }, false);
-    			var a25_nodes = children(a25);
-
-    			t75 = claim_text(a25_nodes, "Rancher");
-    			a25_nodes.forEach(detach);
-    			t76 = claim_text(div6_nodes, "\r\n        ");
-
     			a26 = claim_element(div6_nodes, "A", { href: true }, false);
     			var a26_nodes = children(a26);
 
-    			t77 = claim_text(a26_nodes, "PMA");
+    			t77 = claim_text(a26_nodes, "Rancher");
     			a26_nodes.forEach(detach);
+    			t78 = claim_text(div6_nodes, "\r\n        ");
+
+    			a27 = claim_element(div6_nodes, "A", { href: true }, false);
+    			var a27_nodes = children(a27);
+
+    			t79 = claim_text(a27_nodes, "PMA");
+    			a27_nodes.forEach(detach);
     			div6_nodes.forEach(detach);
-    			t78 = claim_text(div7_nodes, "\r\n\r\n      ");
+    			t80 = claim_text(div7_nodes, "\r\n\r\n      ");
 
     			h24 = claim_element(div7_nodes, "H2", { class: true }, false);
     			var h24_nodes = children(h24);
 
-    			t79 = claim_text(h24_nodes, "Github");
+    			t81 = claim_text(h24_nodes, "Github");
     			h24_nodes.forEach(detach);
-    			t80 = claim_text(div7_nodes, "\r\n      ");
-
-    			a27 = claim_element(div7_nodes, "A", { href: true }, false);
-    			var a27_nodes = children(a27);
-
-    			t81 = claim_text(a27_nodes, "Github relato");
-    			a27_nodes.forEach(detach);
     			t82 = claim_text(div7_nodes, "\r\n      ");
-
-    			h25 = claim_element(div7_nodes, "H2", { class: true }, false);
-    			var h25_nodes = children(h25);
-
-    			t83 = claim_text(h25_nodes, "Mautic");
-    			h25_nodes.forEach(detach);
-    			t84 = claim_text(div7_nodes, "\r\n      ");
 
     			a28 = claim_element(div7_nodes, "A", { href: true }, false);
     			var a28_nodes = children(a28);
 
-    			t85 = claim_text(a28_nodes, "Guia Powertic");
+    			t83 = claim_text(a28_nodes, "Github relato");
     			a28_nodes.forEach(detach);
+    			t84 = claim_text(div7_nodes, "\r\n      ");
+
+    			h25 = claim_element(div7_nodes, "H2", { class: true }, false);
+    			var h25_nodes = children(h25);
+
+    			t85 = claim_text(h25_nodes, "Mautic");
+    			h25_nodes.forEach(detach);
     			t86 = claim_text(div7_nodes, "\r\n      ");
 
     			a29 = claim_element(div7_nodes, "A", { href: true }, false);
     			var a29_nodes = children(a29);
 
-    			t87 = claim_text(a29_nodes, "Luizeof");
+    			t87 = claim_text(a29_nodes, "Guia Powertic");
     			a29_nodes.forEach(detach);
+    			t88 = claim_text(div7_nodes, "\r\n      ");
+
+    			a30 = claim_element(div7_nodes, "A", { href: true }, false);
+    			var a30_nodes = children(a30);
+
+    			t89 = claim_text(a30_nodes, "Luizeof");
+    			a30_nodes.forEach(detach);
     			div7_nodes.forEach(detach);
     			div8_nodes.forEach(detach);
-    			t88 = claim_text(div10_nodes, "\r\n  ");
+    			t90 = claim_text(div17_nodes, "\r\n  ");
 
-    			div9 = claim_element(div10_nodes, "DIV", { class: true }, false);
+    			div16 = claim_element(div17_nodes, "DIV", { class: true }, false);
+    			var div16_nodes = children(div16);
+
+    			div9 = claim_element(div16_nodes, "DIV", { style: true }, false);
     			var div9_nodes = children(div9);
 
+    			t91 = claim_text(div9_nodes, "424964");
     			div9_nodes.forEach(detach);
+    			t92 = claim_text(div16_nodes, "\r\n    ");
+
+    			div10 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div10_nodes = children(div10);
+
+    			t93 = claim_text(div10_nodes, "1A1423");
     			div10_nodes.forEach(detach);
+    			t94 = claim_text(div16_nodes, "\r\n    ");
+
+    			div11 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div11_nodes = children(div11);
+
+    			t95 = claim_text(div11_nodes, "E26D5A");
+    			div11_nodes.forEach(detach);
+    			t96 = claim_text(div16_nodes, "\r\n    ");
+
+    			div12 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div12_nodes = children(div12);
+
+    			t97 = claim_text(div12_nodes, "FFC857");
+    			div12_nodes.forEach(detach);
+    			t98 = claim_text(div16_nodes, "\r\n    ");
+
+    			div13 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div13_nodes = children(div13);
+
+    			t99 = claim_text(div13_nodes, "1F2041");
+    			div13_nodes.forEach(detach);
+    			t100 = claim_text(div16_nodes, "\r\n    ");
+
+    			div14 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div14_nodes = children(div14);
+
+    			img3 = claim_element(div14_nodes, "IMG", { src: true, alt: true, class: true }, false);
+    			var img3_nodes = children(img3);
+
+    			img3_nodes.forEach(detach);
+    			div14_nodes.forEach(detach);
+    			t101 = claim_text(div16_nodes, "\r\n    ");
+
+    			div15 = claim_element(div16_nodes, "DIV", { style: true }, false);
+    			var div15_nodes = children(div15);
+
+    			img4 = claim_element(div15_nodes, "IMG", { src: true, alt: true }, false);
+    			var img4_nodes = children(img4);
+
+    			img4_nodes.forEach(detach);
+    			div15_nodes.forEach(detach);
+    			div16_nodes.forEach(detach);
+    			div17_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
     			div0.className = "sidebar esquerda";
-    			add_location(div0, file$6, 89, 2, 2529);
+    			add_location(div0, file$6, 117, 2, 3181);
     			div1.className = "colunas nested";
-    			add_location(div1, file$6, 97, 4, 2709);
-    			add_location(h10, file$6, 131, 6, 3664);
+    			add_location(div1, file$6, 125, 4, 3362);
+    			add_location(h10, file$6, 149, 6, 4076);
     			img0.src = "images/icons/4chan.png";
     			img0.alt = "";
-    			add_location(img0, file$6, 134, 8, 3751);
+    			add_location(img0, file$6, 152, 8, 4163);
     			a0.href = "https://boards.4chan.org/pol/";
-    			add_location(a0, file$6, 132, 6, 3686);
+    			add_location(a0, file$6, 150, 6, 4098);
     			img1.src = "images/icons/4chan.png";
     			img1.alt = "";
-    			add_location(img1, file$6, 138, 8, 3876);
+    			add_location(img1, file$6, 156, 8, 4288);
     			a1.href = "https://boards.4chan.org/wg/";
-    			add_location(a1, file$6, 136, 6, 3813);
+    			add_location(a1, file$6, 154, 6, 4225);
     			img2.src = "images/icons/4chan.png";
     			img2.alt = "";
-    			add_location(img2, file$6, 142, 8, 4002);
+    			add_location(img2, file$6, 160, 8, 4414);
     			a2.href = "https://boards.4chan.org/gd/";
-    			add_location(a2, file$6, 140, 6, 3939);
-    			a3.href = "https://app.asana.com/";
-    			add_location(a3, file$6, 144, 6, 4065);
-    			add_location(h20, file$6, 145, 6, 4115);
+    			add_location(a2, file$6, 158, 6, 4351);
+    			a3.href = "https://rutracker.net/forum/index.php";
+    			add_location(a3, file$6, 163, 6, 4536);
+    			add_location(h20, file$6, 165, 6, 4613);
     			a4.href = "https://pxhere.com/pt/";
-    			add_location(a4, file$6, 146, 6, 4148);
+    			add_location(a4, file$6, 166, 8, 4648);
     			a5.href = "https://www.pexels.com/";
-    			add_location(a5, file$6, 147, 6, 4199);
+    			add_location(a5, file$6, 167, 8, 4701);
+    			a6.href = "https://unsplash.com/";
+    			add_location(a6, file$6, 168, 8, 4755);
     			h21.className = "tracking-in-contract";
-    			add_location(h21, file$6, 148, 6, 4251);
-    			a6.href = "https://cssgradient.io/gradient-backgrounds/";
-    			add_location(a6, file$6, 149, 6, 4300);
-    			a7.href = "https://www.iconfinder.com/icon-sets/popular/4";
-    			add_location(a7, file$6, 152, 6, 4397);
-    			a8.href = "http://animista.net/play/background/ken-burns/kenburns-bottom-left";
-    			add_location(a8, file$6, 155, 6, 4495);
-    			a9.href = "https://loading.io/";
-    			add_location(a9, file$6, 159, 6, 4642);
-    			a10.href = "https://coolors.co/424964-1a1423-e26d5a-ffc857-1f2041";
-    			add_location(a10, file$6, 160, 6, 4694);
-    			a11.href = "https://bennettfeely.com/clippy/";
-    			add_location(a11, file$6, 163, 6, 4812);
-    			a12.href = "https://www.svgbackgrounds.com/";
-    			add_location(a12, file$6, 166, 6, 4916);
-    			a13.href = "http://alssndro.github.io/trianglify-background-generator/";
-    			add_location(a13, file$6, 167, 6, 4985);
-    			a14.href = "https://keyframes.app/editor/";
-    			add_location(a14, file$6, 170, 6, 5106);
-    			add_location(h22, file$6, 171, 6, 5171);
-    			a15.href = "https://www.evernote.design/";
-    			add_location(a15, file$6, 172, 6, 5198);
-    			a16.href = "https://webframe.xyz/";
-    			add_location(a16, file$6, 173, 6, 5264);
-    			a17.href = "https://dribbble.com/fantasy";
-    			add_location(a17, file$6, 174, 6, 5316);
+    			add_location(h21, file$6, 170, 6, 4809);
+    			a7.href = "https://cssgradient.io/gradient-backgrounds/";
+    			add_location(a7, file$6, 171, 8, 4860);
+    			a8.href = "https://www.iconfinder.com/icon-sets/popular/4";
+    			add_location(a8, file$6, 174, 8, 4963);
+    			a9.href = "http://animista.net/play/background/ken-burns/kenburns-bottom-left";
+    			add_location(a9, file$6, 177, 8, 5067);
+    			a10.href = "https://loading.io/";
+    			add_location(a10, file$6, 181, 8, 5222);
+    			a11.href = "https://coolors.co/424964-1a1423-e26d5a-ffc857-1f2041";
+    			add_location(a11, file$6, 182, 8, 5276);
+    			a12.href = "https://bennettfeely.com/clippy/";
+    			add_location(a12, file$6, 185, 8, 5400);
+    			a13.href = "https://www.svgbackgrounds.com/";
+    			add_location(a13, file$6, 188, 8, 5510);
+    			a14.href = "http://alssndro.github.io/trianglify-background-generator/";
+    			add_location(a14, file$6, 189, 8, 5581);
+    			a15.href = "https://keyframes.app/editor/";
+    			add_location(a15, file$6, 192, 8, 5708);
+    			add_location(h22, file$6, 193, 6, 5773);
+    			a16.href = "https://www.evernote.design/";
+    			add_location(a16, file$6, 194, 6, 5800);
+    			a17.href = "https://webframe.xyz/";
+    			add_location(a17, file$6, 195, 6, 5866);
     			a18.href = "https://dribbble.com/fantasy";
-    			add_location(a18, file$6, 175, 6, 5374);
+    			add_location(a18, file$6, 196, 6, 5918);
+    			a19.href = "https://dribbble.com/fantasy";
+    			add_location(a19, file$6, 197, 6, 5976);
     			div2.className = "colunas";
-    			add_location(div2, file$6, 130, 4, 3635);
-    			add_location(h11, file$6, 178, 6, 5473);
+    			add_location(div2, file$6, 148, 4, 4047);
+    			add_location(h11, file$6, 200, 6, 6075);
     			h23.className = "tracking-in-contract";
-    			add_location(h23, file$6, 179, 6, 5494);
-    			add_location(b0, file$6, 182, 8, 5583);
-    			add_location(h30, file$6, 180, 6, 5550);
-    			a19.href = "http://contabo6.oncloud.net.br:10001/env/1a5/apps/stacks";
-    			add_location(a19, file$6, 185, 8, 5642);
-    			a20.href = "http://phpmyadmin6.3lados.com.br/";
-    			add_location(a20, file$6, 188, 8, 5752);
+    			add_location(h23, file$6, 201, 6, 6096);
+    			add_location(b0, file$6, 204, 8, 6185);
+    			add_location(h30, file$6, 202, 6, 6152);
+    			a20.href = "http://contabo6.oncloud.net.br:10001/env/1a5/apps/stacks";
+    			add_location(a20, file$6, 207, 8, 6244);
+    			a21.href = "http://phpmyadmin6.3lados.com.br/";
+    			add_location(a21, file$6, 210, 8, 6354);
     			div3.className = "nested";
-    			add_location(div3, file$6, 184, 6, 5612);
-    			add_location(b1, file$6, 192, 8, 5858);
-    			add_location(h31, file$6, 190, 6, 5825);
-    			a21.href = "http://contabo8.3lados.com.br:10001/";
-    			add_location(a21, file$6, 195, 8, 5917);
-    			a22.href = "http://phpmyadmin8.3lados.com.br/";
-    			add_location(a22, file$6, 196, 8, 5985);
+    			add_location(div3, file$6, 206, 6, 6214);
+    			add_location(b1, file$6, 214, 8, 6460);
+    			add_location(h31, file$6, 212, 6, 6427);
+    			a22.href = "http://contabo8.3lados.com.br:10001/";
+    			add_location(a22, file$6, 217, 8, 6519);
+    			a23.href = "http://phpmyadmin8.3lados.com.br/";
+    			add_location(a23, file$6, 218, 8, 6587);
     			div4.className = "nested";
-    			add_location(div4, file$6, 194, 6, 5887);
-    			add_location(b2, file$6, 200, 8, 6091);
-    			add_location(h32, file$6, 198, 6, 6058);
-    			a23.href = "http://116.203.114.19:10001";
-    			add_location(a23, file$6, 203, 8, 6147);
-    			a24.href = "http://phpmyadminhetzner.3lados.com.br";
-    			add_location(a24, file$6, 204, 8, 6206);
+    			add_location(div4, file$6, 216, 6, 6489);
+    			add_location(b2, file$6, 222, 8, 6693);
+    			add_location(h32, file$6, 220, 6, 6660);
+    			a24.href = "http://116.203.114.19:10001";
+    			add_location(a24, file$6, 225, 8, 6749);
+    			a25.href = "http://phpmyadminhetzner.3lados.com.br";
+    			add_location(a25, file$6, 226, 8, 6808);
     			div5.className = "nested";
-    			add_location(div5, file$6, 202, 6, 6117);
-    			add_location(b3, file$6, 208, 8, 6318);
-    			add_location(h33, file$6, 206, 6, 6284);
-    			a25.href = "http://hetzner2.3lados.com.br:10001/";
-    			add_location(a25, file$6, 211, 8, 6374);
-    			a26.href = "http://pmahetzner2.3lados.com.br/";
-    			add_location(a26, file$6, 212, 8, 6442);
+    			add_location(div5, file$6, 224, 6, 6719);
+    			add_location(b3, file$6, 230, 8, 6920);
+    			add_location(h33, file$6, 228, 6, 6886);
+    			a26.href = "http://hetzner2.3lados.com.br:10001/";
+    			add_location(a26, file$6, 233, 8, 6976);
+    			a27.href = "http://pmahetzner2.3lados.com.br/";
+    			add_location(a27, file$6, 234, 8, 7044);
     			div6.className = "nested";
-    			add_location(div6, file$6, 210, 6, 6344);
+    			add_location(div6, file$6, 232, 6, 6946);
     			h24.className = "tracking-in-contract";
-    			add_location(h24, file$6, 215, 6, 6517);
-    			a27.href = "https://github.com/RELATO";
-    			add_location(a27, file$6, 216, 6, 6569);
+    			add_location(h24, file$6, 237, 6, 7119);
+    			a28.href = "https://github.com/RELATO";
+    			add_location(a28, file$6, 238, 6, 7171);
     			h25.className = "tracking-in-contract";
-    			add_location(h25, file$6, 217, 6, 6630);
-    			a28.href = "https://powertic.com/pt-br/guia-para-iniciantes-em-mautic/";
-    			add_location(a28, file$6, 218, 6, 6682);
-    			a29.href = "https://luizeof.com.br/";
-    			add_location(a29, file$6, 221, 6, 6794);
+    			add_location(h25, file$6, 239, 6, 7232);
+    			a29.href = "https://powertic.com/pt-br/guia-para-iniciantes-em-mautic/";
+    			add_location(a29, file$6, 240, 6, 7284);
+    			a30.href = "https://luizeof.com.br/";
+    			add_location(a30, file$6, 243, 6, 7396);
     			div7.className = "colunas";
-    			add_location(div7, file$6, 177, 4, 5444);
+    			add_location(div7, file$6, 199, 4, 6046);
     			div8.className = "centro";
-    			add_location(div8, file$6, 95, 2, 2681);
-    			div9.className = "sidebar direita";
-    			add_location(div9, file$6, 224, 2, 6865);
-    			div10.className = "main";
-    			add_location(div10, file$6, 88, 0, 2507);
+    			add_location(div8, file$6, 123, 2, 3333);
+    			set_style(div9, "background-color", "#424964");
+    			add_location(div9, file$6, 247, 4, 7502);
+    			set_style(div10, "background-color", "#1A1423");
+    			add_location(div10, file$6, 248, 4, 7559);
+    			set_style(div11, "background-color", "#E26D5A");
+    			add_location(div11, file$6, 249, 4, 7616);
+    			set_style(div12, "background-color", "#FFC857");
+    			add_location(div12, file$6, 250, 4, 7673);
+    			set_style(div13, "background-color", "#1F2041");
+    			add_location(div13, file$6, 251, 4, 7730);
+    			img3.src = "images/icons/044-lamp.svg";
+    			img3.alt = "trocar de cor";
+    			img3.className = "trocarcor svelte-1v4ehw";
+    			add_location(img3, file$6, 252, 40, 7823);
+    			set_style(div14, "background-color", "#111");
+    			add_location(div14, file$6, 252, 4, 7787);
+    			img4.src = "images/alchemy.svg";
+    			img4.alt = "trocar de cor";
+    			add_location(img4, file$6, 253, 40, 7969);
+    			set_style(div15, "background-color", "#111");
+    			add_location(div15, file$6, 253, 4, 7933);
+    			div16.className = "sidebar direita";
+    			add_location(div16, file$6, 246, 2, 7467);
+    			div17.className = "main";
+    			toggle_class(div17, "claro", ctx.cor);
+    			add_location(div17, file$6, 116, 0, 3141);
+    			dispose = listen(img3, "click", ctx.trocarcor);
     		},
 
     		m: function mount(target, anchor) {
-    			insert(target, div10, anchor);
-    			append(div10, div0);
-    			append(div10, t0);
-    			append(div10, div8);
+    			mount_component(editor, target, anchor);
+    			insert(target, t0, anchor);
+    			insert(target, div17, anchor);
+    			append(div17, div0);
+    			append(div17, t1);
+    			append(div17, div8);
     			append(div8, div1);
-    			mount_component(editor, div1, null);
-    			append(div1, t1);
     			if (if_block) if_block.m(div1, null);
     			append(div8, t2);
     			append(div8, div2);
@@ -30774,11 +31475,11 @@ var app = (function () {
     			append(div2, a5);
     			append(a5, t17);
     			append(div2, t18);
-    			append(div2, h21);
-    			append(h21, t19);
-    			append(div2, t20);
     			append(div2, a6);
-    			append(a6, t21);
+    			append(a6, t19);
+    			append(div2, t20);
+    			append(div2, h21);
+    			append(h21, t21);
     			append(div2, t22);
     			append(div2, a7);
     			append(a7, t23);
@@ -30804,11 +31505,11 @@ var app = (function () {
     			append(div2, a14);
     			append(a14, t37);
     			append(div2, t38);
-    			append(div2, h22);
-    			append(h22, t39);
-    			append(div2, t40);
     			append(div2, a15);
-    			append(a15, t41);
+    			append(a15, t39);
+    			append(div2, t40);
+    			append(div2, h22);
+    			append(h22, t41);
     			append(div2, t42);
     			append(div2, a16);
     			append(a16, t43);
@@ -30818,76 +31519,99 @@ var app = (function () {
     			append(div2, t46);
     			append(div2, a18);
     			append(a18, t47);
-    			append(div8, t48);
+    			append(div2, t48);
+    			append(div2, a19);
+    			append(a19, t49);
+    			append(div8, t50);
     			append(div8, div7);
     			append(div7, h11);
-    			append(h11, t49);
-    			append(div7, t50);
-    			append(div7, h23);
-    			append(h23, t51);
+    			append(h11, t51);
     			append(div7, t52);
+    			append(div7, h23);
+    			append(h23, t53);
+    			append(div7, t54);
     			append(div7, h30);
-    			append(h30, t53);
+    			append(h30, t55);
     			append(h30, b0);
-    			append(b0, t54);
-    			append(div7, t55);
+    			append(b0, t56);
+    			append(div7, t57);
     			append(div7, div3);
-    			append(div3, a19);
-    			append(a19, t56);
-    			append(div3, t57);
     			append(div3, a20);
     			append(a20, t58);
-    			append(div7, t59);
+    			append(div3, t59);
+    			append(div3, a21);
+    			append(a21, t60);
+    			append(div7, t61);
     			append(div7, h31);
-    			append(h31, t60);
+    			append(h31, t62);
     			append(h31, b1);
-    			append(b1, t61);
-    			append(div7, t62);
+    			append(b1, t63);
+    			append(div7, t64);
     			append(div7, div4);
-    			append(div4, a21);
-    			append(a21, t63);
-    			append(div4, t64);
     			append(div4, a22);
     			append(a22, t65);
-    			append(div7, t66);
-    			append(div7, h32);
-    			append(h32, t67);
-    			append(h32, b2);
+    			append(div4, t66);
+    			append(div4, a23);
+    			append(a23, t67);
     			append(div7, t68);
+    			append(div7, h32);
+    			append(h32, t69);
+    			append(h32, b2);
+    			append(div7, t70);
     			append(div7, div5);
-    			append(div5, a23);
-    			append(a23, t69);
-    			append(div5, t70);
     			append(div5, a24);
     			append(a24, t71);
-    			append(div7, t72);
-    			append(div7, h33);
-    			append(h33, t73);
-    			append(h33, b3);
+    			append(div5, t72);
+    			append(div5, a25);
+    			append(a25, t73);
     			append(div7, t74);
+    			append(div7, h33);
+    			append(h33, t75);
+    			append(h33, b3);
+    			append(div7, t76);
     			append(div7, div6);
-    			append(div6, a25);
-    			append(a25, t75);
-    			append(div6, t76);
     			append(div6, a26);
     			append(a26, t77);
-    			append(div7, t78);
-    			append(div7, h24);
-    			append(h24, t79);
+    			append(div6, t78);
+    			append(div6, a27);
+    			append(a27, t79);
     			append(div7, t80);
-    			append(div7, a27);
-    			append(a27, t81);
+    			append(div7, h24);
+    			append(h24, t81);
     			append(div7, t82);
-    			append(div7, h25);
-    			append(h25, t83);
-    			append(div7, t84);
     			append(div7, a28);
-    			append(a28, t85);
+    			append(a28, t83);
+    			append(div7, t84);
+    			append(div7, h25);
+    			append(h25, t85);
     			append(div7, t86);
     			append(div7, a29);
     			append(a29, t87);
-    			append(div10, t88);
-    			append(div10, div9);
+    			append(div7, t88);
+    			append(div7, a30);
+    			append(a30, t89);
+    			append(div17, t90);
+    			append(div17, div16);
+    			append(div16, div9);
+    			append(div9, t91);
+    			append(div16, t92);
+    			append(div16, div10);
+    			append(div10, t93);
+    			append(div16, t94);
+    			append(div16, div11);
+    			append(div11, t95);
+    			append(div16, t96);
+    			append(div16, div12);
+    			append(div12, t97);
+    			append(div16, t98);
+    			append(div16, div13);
+    			append(div13, t99);
+    			append(div16, t100);
+    			append(div16, div14);
+    			append(div14, img3);
+    			append(div16, t101);
+    			append(div16, div15);
+    			append(div15, img4);
     			current = true;
     		},
 
@@ -30898,7 +31622,7 @@ var app = (function () {
     			if (changed.nome) editor_changes.nome = ctx.nome;
     			if (changed.link) editor_changes.link = ctx.link;
     			if (changed.imagem) editor_changes.imagem = ctx.imagem;
-    			if (changed.id) editor_changes.id = ctx.id;
+    			if (changed.idItem) editor_changes.idItem = ctx.idItem;
     			editor.$set(editor_changes);
 
     			if (ctx.uid) {
@@ -30921,6 +31645,10 @@ var app = (function () {
     				if_block.o(1);
     				check_outros();
     			}
+
+    			if (changed.cor) {
+    				toggle_class(div17, "claro", ctx.cor);
+    			}
     		},
 
     		i: function intro(local) {
@@ -30938,72 +31666,74 @@ var app = (function () {
     		},
 
     		d: function destroy(detaching) {
+    			editor.$destroy(detaching);
+
     			if (detaching) {
-    				detach(div10);
+    				detach(t0);
+    				detach(div17);
     			}
 
-    			editor.$destroy();
-
     			if (if_block) if_block.d();
+    			dispose();
     		}
     	};
     }
 
-    function instance$8($$self, $$props, $$invalidate) {
+    function remove(e) {
+      // itemsTab1 = itemsTab1.filter(t => !t.selected);
+      // itemsTab1 = [...itemsTab1];
+      console.log("asd " + e); $$invalidate('idItem', idItem), $$invalidate('itemsTab1', itemsTab1);
+    //     console.log(event.detail);
+    //     const { id } = event.detail;
+    //     db.collection('links1').doc(selected).delete();
+    }
 
-      let link = "url";
-      let imagem = "images/icons/youtube.svg";
-      let nome = "Nome";
-      let id = 0;
+    function instance$8($$self, $$props, $$invalidate) {
+      let idItem = 0;
 
       // export let user;
       // $:user =  [...user];
       // export let displayName;
       // export let photoURL;
-      let { uid } = $$props;
+      let { uid, selected } = $$props;
       // console.log("uid = "+uid)
       
       let itemsTab1 = [
         {
-          id: id++,
+          id: idItem++,
           nome: "Youtube",
           link: "https://youtube.com",
           img: "images/icons/youtube.svg",
           selected: false
         },
         {
-          id: id++,
+          id: idItem++,
           nome: "Gmail",
           link: "https://gmail.com",
           img: "images/icons/gmail.svg",
           selected: false
         },
         {
-          id: id++,
+          id: idItem++,
           nome: "Cloudflare",
           link: "https://www.cloudflare.com/",
           img: "images/icons/cloudflare.svg",
           selected: false
         },
         {
-          id: id++,
+          id: idItem++,
           nome: "Google News",
           link: "https://news.google.com/foryou",
           img: "https://lh3.googleusercontent.com/-DR60l-K8vnyi99NZovm9HlXyZwQ85GMDxiwJWzoasZYCUrPuUM_P_4Rb7ei03j-0nRs0c4F=w128",
           selected: false
         }
       ];
-
-      function remove(e) {
-        $$invalidate('itemsTab1', itemsTab1 = itemsTab1.filter(t => { const $$result = !t.selected; $$invalidate('id', id), $$invalidate('itemsTab1', itemsTab1); return $$result; }));
-        $$invalidate('itemsTab1', itemsTab1 = [...itemsTab1]);
-        console.log("asd " + e);
-      }
       
       const salvar = e => {
-        const novoItem = e.detail;
-        db$1.collection('links1').add({ uid, nome, link, imagem, selected: false, created: Date.now() });
-        $$invalidate('itemsTab1', itemsTab1 = [...itemsTab1, novoItem]);
+          const novoItem = e.detail;
+          console.log(e.detail);
+          // itemsTab1 = [...itemsTab1, novoItem];
+          db$1.collection('links1').add({ uid, nome: novoItem.nome, link: novoItem.link, imagem: novoItem.imagem, selected: false, created: Date.now() });
       };
 
       const editar = e => {
@@ -31012,50 +31742,71 @@ var app = (function () {
         itemsTab1[editarItem.id] = editarItem; $$invalidate('itemsTab1', itemsTab1);
       };
 
-      let selecionado = false;
+      let { selecionado } = $$props;
 
-    	const writable_props = ['uid'];
+      let { cor = false } = $$props;
+      function trocarcor(){
+          $$invalidate('cor', cor = !cor);
+      }
+
+    	const writable_props = ['uid', 'selected', 'selecionado', 'cor'];
     	Object.keys($$props).forEach(key => {
     		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Home> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$set = $$props => {
     		if ('uid' in $$props) $$invalidate('uid', uid = $$props.uid);
+    		if ('selected' in $$props) $$invalidate('selected', selected = $$props.selected);
+    		if ('selecionado' in $$props) $$invalidate('selecionado', selecionado = $$props.selecionado);
+    		if ('cor' in $$props) $$invalidate('cor', cor = $$props.cor);
     	};
 
+    	let link, imagem, nome;
+
     	$$self.$$.update = ($$dirty = { itemsTab1: 1 }) => {
-    		if ($$dirty.itemsTab1) { $$invalidate('selecionado', selecionado = itemsTab1.filter(t => t.selected).length); }
     		if ($$dirty.itemsTab1) { if (itemsTab1.filter(t => t.selected).length) {
             $$invalidate('link', link = itemsTab1.filter(t => t.selected)[0].link);
             $$invalidate('imagem', imagem = itemsTab1.filter(t => t.selected)[0].img);
             $$invalidate('nome', nome = itemsTab1.filter(t => t.selected)[0].nome);
-            $$invalidate('id', id = itemsTab1.filter(t => t.selected)[0].id);
+            $$invalidate('idItem', idItem = itemsTab1.filter(t => t.selected)[0].id);
           } }
     	};
 
+    	$$invalidate('link', link = "https://");
+    	$$invalidate('imagem', imagem = "images/icons/youtube.svg");
+    	$$invalidate('nome', nome = "Nome");
+
     	return {
-    		link,
-    		imagem,
-    		nome,
-    		id,
+    		idItem,
     		uid,
+    		selected,
     		itemsTab1,
-    		remove,
     		salvar,
     		editar,
-    		selecionado
+    		selecionado,
+    		cor,
+    		trocarcor,
+    		link,
+    		imagem,
+    		nome
     	};
     }
 
     class Home extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$8, create_fragment$8, safe_not_equal, ["uid"]);
+    		init(this, options, instance$8, create_fragment$8, safe_not_equal, ["uid", "selected", "selecionado", "cor"]);
 
     		const { ctx } = this.$$;
     		const props = options.props || {};
     		if (ctx.uid === undefined && !('uid' in props)) {
     			console.warn("<Home> was created without expected prop 'uid'");
+    		}
+    		if (ctx.selected === undefined && !('selected' in props)) {
+    			console.warn("<Home> was created without expected prop 'selected'");
+    		}
+    		if (ctx.selecionado === undefined && !('selecionado' in props)) {
+    			console.warn("<Home> was created without expected prop 'selecionado'");
     		}
     	}
 
@@ -31064,6 +31815,30 @@ var app = (function () {
     	}
 
     	set uid(value) {
+    		throw new Error("<Home>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get selected() {
+    		throw new Error("<Home>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set selected(value) {
+    		throw new Error("<Home>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get selecionado() {
+    		throw new Error("<Home>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set selecionado(value) {
+    		throw new Error("<Home>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get cor() {
+    		throw new Error("<Home>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set cor(value) {
     		throw new Error("<Home>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -32393,7 +33168,7 @@ var app = (function () {
 
     const file$8 = "src\\App.svelte";
 
-    // (53:4) <Link to="/">
+    // (56:4) <Link to="/">
     function create_default_slot_4(ctx) {
     	var t;
 
@@ -32418,7 +33193,7 @@ var app = (function () {
     	};
     }
 
-    // (54:4) <Link to="sites" replace>
+    // (57:4) <Link to="sites" replace>
     function create_default_slot_3(ctx) {
     	var t;
 
@@ -32443,7 +33218,7 @@ var app = (function () {
     	};
     }
 
-    // (59:8) {:else}
+    // (62:8) {:else}
     function create_else_block$2(ctx) {
     	var button, t, dispose;
 
@@ -32464,9 +33239,9 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			button.className = "uk-button";
+    			button.className = "uk-button svelte-1cogzlj";
     			attr(button, "uk-icon", "google");
-    			add_location(button, file$8, 59, 10, 1628);
+    			add_location(button, file$8, 62, 10, 1719);
     			dispose = listen(button, "click", login);
     		},
 
@@ -32489,7 +33264,7 @@ var app = (function () {
     	};
     }
 
-    // (56:8) {#if user}
+    // (59:8) {#if user}
     function create_if_block$5(ctx) {
     	var t0, button, t1, current, dispose;
 
@@ -32525,9 +33300,9 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			button.className = "uk-button";
+    			button.className = "uk-button uk-button-secondary svelte-1cogzlj";
     			attr(button, "uk-icon", "google");
-    			add_location(button, file$8, 57, 10, 1509);
+    			add_location(button, file$8, 60, 10, 1580);
     			dispose = listen(button, "click", ctx.click_handler);
     		},
 
@@ -32571,7 +33346,7 @@ var app = (function () {
     	};
     }
 
-    // (68:6) <Route path="/">
+    // (71:6) <Route path="/">
     function create_default_slot_2(ctx) {
     	var current;
 
@@ -32624,7 +33399,7 @@ var app = (function () {
     	};
     }
 
-    // (69:6) <Route path="/sites">
+    // (72:6) <Route path="/sites">
     function create_default_slot_1(ctx) {
     	var current;
 
@@ -32662,7 +33437,7 @@ var app = (function () {
     	};
     }
 
-    // (51:0) <Router url="{url}">
+    // (54:0) <Router url="{url}">
     function create_default_slot(ctx) {
     	var nav, t0, t1, div0, current_block_type_index, if_block, t2, div1, t3, current;
 
@@ -32763,10 +33538,10 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			div0.className = "login svelte-k6s1oa";
-    			add_location(div0, file$8, 54, 6, 1428);
-    			add_location(nav, file$8, 51, 2, 1345);
-    			add_location(div1, file$8, 66, 4, 1769);
+    			div0.className = "login svelte-1cogzlj";
+    			add_location(div0, file$8, 57, 6, 1499);
+    			add_location(nav, file$8, 54, 2, 1416);
+    			add_location(div1, file$8, 69, 4, 1860);
     		},
 
     		m: function mount(target, anchor) {
@@ -32934,6 +33709,9 @@ var app = (function () {
       let { url = "", user } = $$props;
       
       const unsubscribe = authState(auth).subscribe(u => { const $$result = user = u; $$invalidate('user', user); return $$result; });
+      if(unsubscribe){
+        console.log(unsubscribe);
+      }
 
     	const writable_props = ['url', 'user'];
     	Object.keys($$props).forEach(key => {
