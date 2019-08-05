@@ -30581,7 +30581,7 @@ var app = (function () {
 
     const file$6 = "src\\Home.svelte";
 
-    // (142:10) {#if uid}
+    // (150:6) {#if uid}
     function create_if_block$3(ctx) {
     	var t, current;
 
@@ -30604,7 +30604,7 @@ var app = (function () {
 
     		l: function claim(nodes) {
     			tab1.$$.fragment.l(nodes);
-    			t = claim_text(nodes, "\r\n             ");
+    			t = claim_text(nodes, "\r\n        ");
     			todos.$$.fragment.l(nodes);
     		},
 
@@ -30925,28 +30925,28 @@ var app = (function () {
 
     			t11 = claim_text(a3_nodes, "RuTracker");
     			a3_nodes.forEach(detach);
-    			t12 = claim_text(div2_nodes, "\r\n      \r\n      ");
+    			t12 = claim_text(div2_nodes, "\r\n\r\n      ");
 
     			h20 = claim_element(div2_nodes, "H2", {}, false);
     			var h20_nodes = children(h20);
 
     			t13 = claim_text(h20_nodes, "Sites de Imagens");
     			h20_nodes.forEach(detach);
-    			t14 = claim_text(div2_nodes, "\r\n        ");
+    			t14 = claim_text(div2_nodes, "\r\n      ");
 
     			a4 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a4_nodes = children(a4);
 
     			t15 = claim_text(a4_nodes, "PXHere");
     			a4_nodes.forEach(detach);
-    			t16 = claim_text(div2_nodes, "\r\n        ");
+    			t16 = claim_text(div2_nodes, "\r\n      ");
 
     			a5 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a5_nodes = children(a5);
 
     			t17 = claim_text(a5_nodes, "Pexels");
     			a5_nodes.forEach(detach);
-    			t18 = claim_text(div2_nodes, "\r\n        ");
+    			t18 = claim_text(div2_nodes, "\r\n      ");
 
     			a6 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a6_nodes = children(a6);
@@ -30960,63 +30960,63 @@ var app = (function () {
 
     			t21 = claim_text(h21_nodes, "CSS");
     			h21_nodes.forEach(detach);
-    			t22 = claim_text(div2_nodes, "\r\n        ");
+    			t22 = claim_text(div2_nodes, "\r\n      ");
 
     			a7 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a7_nodes = children(a7);
 
     			t23 = claim_text(a7_nodes, "CSS GRADIENT");
     			a7_nodes.forEach(detach);
-    			t24 = claim_text(div2_nodes, "\r\n        ");
+    			t24 = claim_text(div2_nodes, "\r\n      ");
 
     			a8 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a8_nodes = children(a8);
 
     			t25 = claim_text(a8_nodes, "ICON FINDER");
     			a8_nodes.forEach(detach);
-    			t26 = claim_text(div2_nodes, "\r\n        ");
+    			t26 = claim_text(div2_nodes, "\r\n      ");
 
     			a9 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a9_nodes = children(a9);
 
     			t27 = claim_text(a9_nodes, "Animista - presets de animações");
     			a9_nodes.forEach(detach);
-    			t28 = claim_text(div2_nodes, "\r\n        ");
+    			t28 = claim_text(div2_nodes, "\r\n      ");
 
     			a10 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a10_nodes = children(a10);
 
     			t29 = claim_text(a10_nodes, "Loading.io");
     			a10_nodes.forEach(detach);
-    			t30 = claim_text(div2_nodes, "\r\n        ");
+    			t30 = claim_text(div2_nodes, "\r\n      ");
 
     			a11 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a11_nodes = children(a11);
 
     			t31 = claim_text(a11_nodes, "Coolors - cores, paletas");
     			a11_nodes.forEach(detach);
-    			t32 = claim_text(div2_nodes, "\r\n        ");
+    			t32 = claim_text(div2_nodes, "\r\n      ");
 
     			a12 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a12_nodes = children(a12);
 
     			t33 = claim_text(a12_nodes, "Clippy - SVG formas geometricas");
     			a12_nodes.forEach(detach);
-    			t34 = claim_text(div2_nodes, "\r\n        ");
+    			t34 = claim_text(div2_nodes, "\r\n      ");
 
     			a13 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a13_nodes = children(a13);
 
     			t35 = claim_text(a13_nodes, "SVG Backgrounds");
     			a13_nodes.forEach(detach);
-    			t36 = claim_text(div2_nodes, "\r\n        ");
+    			t36 = claim_text(div2_nodes, "\r\n      ");
 
     			a14 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a14_nodes = children(a14);
 
     			t37 = claim_text(a14_nodes, "Triangulos backgrounds");
     			a14_nodes.forEach(detach);
-    			t38 = claim_text(div2_nodes, "\r\n        ");
+    			t38 = claim_text(div2_nodes, "\r\n      ");
 
     			a15 = claim_element(div2_nodes, "A", { href: true }, false);
     			var a15_nodes = children(a15);
@@ -31300,140 +31300,140 @@ var app = (function () {
 
     		h: function hydrate() {
     			div0.className = "sidebar esquerda";
-    			add_location(div0, file$6, 117, 2, 3181);
+    			add_location(div0, file$6, 125, 2, 3222);
     			div1.className = "colunas nested";
-    			add_location(div1, file$6, 125, 4, 3362);
-    			add_location(h10, file$6, 149, 6, 4076);
+    			add_location(div1, file$6, 133, 4, 3400);
+    			add_location(h10, file$6, 157, 6, 4062);
     			img0.src = "images/icons/4chan.png";
     			img0.alt = "";
-    			add_location(img0, file$6, 152, 8, 4163);
+    			add_location(img0, file$6, 160, 8, 4149);
     			a0.href = "https://boards.4chan.org/pol/";
-    			add_location(a0, file$6, 150, 6, 4098);
+    			add_location(a0, file$6, 158, 6, 4084);
     			img1.src = "images/icons/4chan.png";
     			img1.alt = "";
-    			add_location(img1, file$6, 156, 8, 4288);
+    			add_location(img1, file$6, 164, 8, 4275);
     			a1.href = "https://boards.4chan.org/wg/";
-    			add_location(a1, file$6, 154, 6, 4225);
+    			add_location(a1, file$6, 162, 6, 4212);
     			img2.src = "images/icons/4chan.png";
     			img2.alt = "";
-    			add_location(img2, file$6, 160, 8, 4414);
+    			add_location(img2, file$6, 168, 8, 4401);
     			a2.href = "https://boards.4chan.org/gd/";
-    			add_location(a2, file$6, 158, 6, 4351);
+    			add_location(a2, file$6, 166, 6, 4338);
     			a3.href = "https://rutracker.net/forum/index.php";
-    			add_location(a3, file$6, 163, 6, 4536);
-    			add_location(h20, file$6, 165, 6, 4613);
+    			add_location(a3, file$6, 171, 6, 4523);
+    			add_location(h20, file$6, 173, 6, 4594);
     			a4.href = "https://pxhere.com/pt/";
-    			add_location(a4, file$6, 166, 8, 4648);
+    			add_location(a4, file$6, 174, 6, 4627);
     			a5.href = "https://www.pexels.com/";
-    			add_location(a5, file$6, 167, 8, 4701);
+    			add_location(a5, file$6, 175, 6, 4678);
     			a6.href = "https://unsplash.com/";
-    			add_location(a6, file$6, 168, 8, 4755);
+    			add_location(a6, file$6, 176, 6, 4730);
     			h21.className = "tracking-in-contract";
-    			add_location(h21, file$6, 170, 6, 4809);
+    			add_location(h21, file$6, 178, 6, 4784);
     			a7.href = "https://cssgradient.io/gradient-backgrounds/";
-    			add_location(a7, file$6, 171, 8, 4860);
+    			add_location(a7, file$6, 179, 6, 4833);
     			a8.href = "https://www.iconfinder.com/icon-sets/popular/4";
-    			add_location(a8, file$6, 174, 8, 4963);
+    			add_location(a8, file$6, 180, 6, 4912);
     			a9.href = "http://animista.net/play/background/ken-burns/kenburns-bottom-left";
-    			add_location(a9, file$6, 177, 8, 5067);
+    			add_location(a9, file$6, 181, 6, 4992);
     			a10.href = "https://loading.io/";
-    			add_location(a10, file$6, 181, 8, 5222);
+    			add_location(a10, file$6, 185, 6, 5139);
     			a11.href = "https://coolors.co/424964-1a1423-e26d5a-ffc857-1f2041";
-    			add_location(a11, file$6, 182, 8, 5276);
+    			add_location(a11, file$6, 186, 6, 5191);
     			a12.href = "https://bennettfeely.com/clippy/";
-    			add_location(a12, file$6, 185, 8, 5400);
+    			add_location(a12, file$6, 189, 6, 5309);
     			a13.href = "https://www.svgbackgrounds.com/";
-    			add_location(a13, file$6, 188, 8, 5510);
+    			add_location(a13, file$6, 192, 6, 5413);
     			a14.href = "http://alssndro.github.io/trianglify-background-generator/";
-    			add_location(a14, file$6, 189, 8, 5581);
+    			add_location(a14, file$6, 193, 6, 5482);
     			a15.href = "https://keyframes.app/editor/";
-    			add_location(a15, file$6, 192, 8, 5708);
-    			add_location(h22, file$6, 193, 6, 5773);
+    			add_location(a15, file$6, 196, 6, 5603);
+    			add_location(h22, file$6, 197, 6, 5668);
     			a16.href = "https://www.evernote.design/";
-    			add_location(a16, file$6, 194, 6, 5800);
+    			add_location(a16, file$6, 198, 6, 5695);
     			a17.href = "https://webframe.xyz/";
-    			add_location(a17, file$6, 195, 6, 5866);
+    			add_location(a17, file$6, 199, 6, 5761);
     			a18.href = "https://dribbble.com/fantasy";
-    			add_location(a18, file$6, 196, 6, 5918);
+    			add_location(a18, file$6, 200, 6, 5813);
     			a19.href = "https://dribbble.com/fantasy";
-    			add_location(a19, file$6, 197, 6, 5976);
+    			add_location(a19, file$6, 201, 6, 5871);
     			div2.className = "colunas";
-    			add_location(div2, file$6, 148, 4, 4047);
-    			add_location(h11, file$6, 200, 6, 6075);
+    			add_location(div2, file$6, 156, 4, 4033);
+    			add_location(h11, file$6, 204, 6, 5970);
     			h23.className = "tracking-in-contract";
-    			add_location(h23, file$6, 201, 6, 6096);
-    			add_location(b0, file$6, 204, 8, 6185);
-    			add_location(h30, file$6, 202, 6, 6152);
+    			add_location(h23, file$6, 205, 6, 5991);
+    			add_location(b0, file$6, 208, 8, 6080);
+    			add_location(h30, file$6, 206, 6, 6047);
     			a20.href = "http://contabo6.oncloud.net.br:10001/env/1a5/apps/stacks";
-    			add_location(a20, file$6, 207, 8, 6244);
+    			add_location(a20, file$6, 211, 8, 6139);
     			a21.href = "http://phpmyadmin6.3lados.com.br/";
-    			add_location(a21, file$6, 210, 8, 6354);
+    			add_location(a21, file$6, 214, 8, 6249);
     			div3.className = "nested";
-    			add_location(div3, file$6, 206, 6, 6214);
-    			add_location(b1, file$6, 214, 8, 6460);
-    			add_location(h31, file$6, 212, 6, 6427);
+    			add_location(div3, file$6, 210, 6, 6109);
+    			add_location(b1, file$6, 218, 8, 6355);
+    			add_location(h31, file$6, 216, 6, 6322);
     			a22.href = "http://contabo8.3lados.com.br:10001/";
-    			add_location(a22, file$6, 217, 8, 6519);
+    			add_location(a22, file$6, 221, 8, 6414);
     			a23.href = "http://phpmyadmin8.3lados.com.br/";
-    			add_location(a23, file$6, 218, 8, 6587);
+    			add_location(a23, file$6, 222, 8, 6482);
     			div4.className = "nested";
-    			add_location(div4, file$6, 216, 6, 6489);
-    			add_location(b2, file$6, 222, 8, 6693);
-    			add_location(h32, file$6, 220, 6, 6660);
+    			add_location(div4, file$6, 220, 6, 6384);
+    			add_location(b2, file$6, 226, 8, 6588);
+    			add_location(h32, file$6, 224, 6, 6555);
     			a24.href = "http://116.203.114.19:10001";
-    			add_location(a24, file$6, 225, 8, 6749);
+    			add_location(a24, file$6, 229, 8, 6644);
     			a25.href = "http://phpmyadminhetzner.3lados.com.br";
-    			add_location(a25, file$6, 226, 8, 6808);
+    			add_location(a25, file$6, 230, 8, 6703);
     			div5.className = "nested";
-    			add_location(div5, file$6, 224, 6, 6719);
-    			add_location(b3, file$6, 230, 8, 6920);
-    			add_location(h33, file$6, 228, 6, 6886);
+    			add_location(div5, file$6, 228, 6, 6614);
+    			add_location(b3, file$6, 234, 8, 6815);
+    			add_location(h33, file$6, 232, 6, 6781);
     			a26.href = "http://hetzner2.3lados.com.br:10001/";
-    			add_location(a26, file$6, 233, 8, 6976);
+    			add_location(a26, file$6, 237, 8, 6871);
     			a27.href = "http://pmahetzner2.3lados.com.br/";
-    			add_location(a27, file$6, 234, 8, 7044);
+    			add_location(a27, file$6, 238, 8, 6939);
     			div6.className = "nested";
-    			add_location(div6, file$6, 232, 6, 6946);
+    			add_location(div6, file$6, 236, 6, 6841);
     			h24.className = "tracking-in-contract";
-    			add_location(h24, file$6, 237, 6, 7119);
+    			add_location(h24, file$6, 241, 6, 7014);
     			a28.href = "https://github.com/RELATO";
-    			add_location(a28, file$6, 238, 6, 7171);
+    			add_location(a28, file$6, 242, 6, 7066);
     			h25.className = "tracking-in-contract";
-    			add_location(h25, file$6, 239, 6, 7232);
+    			add_location(h25, file$6, 243, 6, 7127);
     			a29.href = "https://powertic.com/pt-br/guia-para-iniciantes-em-mautic/";
-    			add_location(a29, file$6, 240, 6, 7284);
+    			add_location(a29, file$6, 244, 6, 7179);
     			a30.href = "https://luizeof.com.br/";
-    			add_location(a30, file$6, 243, 6, 7396);
+    			add_location(a30, file$6, 247, 6, 7291);
     			div7.className = "colunas";
-    			add_location(div7, file$6, 199, 4, 6046);
+    			add_location(div7, file$6, 203, 4, 5941);
     			div8.className = "centro";
-    			add_location(div8, file$6, 123, 2, 3333);
+    			add_location(div8, file$6, 131, 2, 3372);
     			set_style(div9, "background-color", "#424964");
-    			add_location(div9, file$6, 247, 4, 7502);
+    			add_location(div9, file$6, 251, 4, 7397);
     			set_style(div10, "background-color", "#1A1423");
-    			add_location(div10, file$6, 248, 4, 7559);
+    			add_location(div10, file$6, 252, 4, 7454);
     			set_style(div11, "background-color", "#E26D5A");
-    			add_location(div11, file$6, 249, 4, 7616);
+    			add_location(div11, file$6, 253, 4, 7511);
     			set_style(div12, "background-color", "#FFC857");
-    			add_location(div12, file$6, 250, 4, 7673);
+    			add_location(div12, file$6, 254, 4, 7568);
     			set_style(div13, "background-color", "#1F2041");
-    			add_location(div13, file$6, 251, 4, 7730);
+    			add_location(div13, file$6, 255, 4, 7625);
     			img3.src = "images/icons/044-lamp.svg";
     			img3.alt = "trocar de cor";
-    			img3.className = "trocarcor svelte-1v4ehw";
-    			add_location(img3, file$6, 252, 40, 7823);
+    			img3.className = "trocarcor svelte-y62v0o";
+    			add_location(img3, file$6, 257, 6, 7726);
     			set_style(div14, "background-color", "#111");
-    			add_location(div14, file$6, 252, 4, 7787);
+    			add_location(div14, file$6, 256, 4, 7682);
     			img4.src = "images/alchemy.svg";
     			img4.alt = "trocar de cor";
-    			add_location(img4, file$6, 253, 40, 7969);
+    			add_location(img4, file$6, 264, 6, 7922);
     			set_style(div15, "background-color", "#111");
-    			add_location(div15, file$6, 253, 4, 7933);
+    			add_location(div15, file$6, 263, 4, 7878);
     			div16.className = "sidebar direita";
-    			add_location(div16, file$6, 246, 2, 7467);
+    			add_location(div16, file$6, 250, 2, 7362);
     			div17.className = "main";
     			toggle_class(div17, "claro", ctx.cor);
-    			add_location(div17, file$6, 116, 0, 3141);
+    			add_location(div17, file$6, 124, 0, 3182);
     			dispose = listen(img3, "click", ctx.trocarcor);
     		},
 
@@ -31683,9 +31683,9 @@ var app = (function () {
       // itemsTab1 = itemsTab1.filter(t => !t.selected);
       // itemsTab1 = [...itemsTab1];
       console.log("asd " + e); $$invalidate('idItem', idItem), $$invalidate('itemsTab1', itemsTab1);
-    //     console.log(event.detail);
-    //     const { id } = event.detail;
-    //     db.collection('links1').doc(selected).delete();
+      //     console.log(event.detail);
+      //     const { id } = event.detail;
+      //     db.collection('links1').doc(selected).delete();
     }
 
     function instance$8($$self, $$props, $$invalidate) {
@@ -31697,7 +31697,7 @@ var app = (function () {
       // export let photoURL;
       let { uid, selected } = $$props;
       // console.log("uid = "+uid)
-      
+
       let itemsTab1 = [
         {
           id: idItem++,
@@ -31724,16 +31724,24 @@ var app = (function () {
           id: idItem++,
           nome: "Google News",
           link: "https://news.google.com/foryou",
-          img: "https://lh3.googleusercontent.com/-DR60l-K8vnyi99NZovm9HlXyZwQ85GMDxiwJWzoasZYCUrPuUM_P_4Rb7ei03j-0nRs0c4F=w128",
+          img:
+            "https://lh3.googleusercontent.com/-DR60l-K8vnyi99NZovm9HlXyZwQ85GMDxiwJWzoasZYCUrPuUM_P_4Rb7ei03j-0nRs0c4F=w128",
           selected: false
         }
       ];
-      
+
       const salvar = e => {
-          const novoItem = e.detail;
-          console.log(e.detail);
-          // itemsTab1 = [...itemsTab1, novoItem];
-          db$1.collection('links1').add({ uid, nome: novoItem.nome, link: novoItem.link, imagem: novoItem.imagem, selected: false, created: Date.now() });
+        const novoItem = e.detail;
+        console.log(e.detail);
+        // itemsTab1 = [...itemsTab1, novoItem];
+        db$1.collection("links1").add({
+          uid,
+          nome: novoItem.nome,
+          link: novoItem.link,
+          imagem: novoItem.imagem,
+          selected: false,
+          created: Date.now()
+        });
       };
 
       const editar = e => {
@@ -31745,8 +31753,8 @@ var app = (function () {
       let { selecionado } = $$props;
 
       let { cor = false } = $$props;
-      function trocarcor(){
-          $$invalidate('cor', cor = !cor);
+      function trocarcor() {
+        $$invalidate('cor', cor = !cor);
       }
 
     	const writable_props = ['uid', 'selected', 'selecionado', 'cor'];
@@ -31866,11 +31874,11 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (213:6) {#if mostrar}
-    function create_if_block_1$2(ctx) {
-    	var div2, div0, h20, t0, t1, label0, t2, input0, t3, label1, t4, input1, t5, label2, t6, select, option, t7, button0, t8, t9, div1, h21, t10, t11, label3, t12, input2, t13, label4, t14, input3, t15, label5, t16, input4, t17, label6, t18, input5, t19, button1, t20, div2_transition, current, dispose;
+    // (205:6) {#if mostrar}
+    function create_if_block_3(ctx) {
+    	var div2, div0, h20, t0, t1, label0, t2, input0, t3, label1, t4, input1, t5, label2, t6, input2, t7, label3, t8, select, option, t9, button0, t10, t11, div1, h21, t12, t13, label4, t14, input3, t15, label5, t16, input4, t17, label6, t18, input5, t19, label7, t20, input6, t21, button1, t22, div2_transition, current, dispose;
 
-    	var each_value_2 = ctx.servidores;
+    	var each_value_2 = ctx.$servidores;
 
     	var each_blocks = [];
 
@@ -31886,15 +31894,19 @@ var app = (function () {
     			t0 = text("Adicionar Site");
     			t1 = space();
     			label0 = element("label");
-    			t2 = text("Site\r\n                    ");
+    			t2 = text("Site\r\n              ");
     			input0 = element("input");
     			t3 = space();
     			label1 = element("label");
-    			t4 = text("Link\r\n                    ");
+    			t4 = text("Link\r\n              ");
     			input1 = element("input");
     			t5 = space();
     			label2 = element("label");
-    			t6 = text("Servidor\r\n                    ");
+    			t6 = text("Desativado?\r\n              ");
+    			input2 = element("input");
+    			t7 = space();
+    			label3 = element("label");
+    			t8 = text("Servidor\r\n              ");
     			select = element("select");
     			option = element("option");
 
@@ -31902,32 +31914,32 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			t7 = space();
-    			button0 = element("button");
-    			t8 = text("Adicionar Site");
     			t9 = space();
+    			button0 = element("button");
+    			t10 = text("Adicionar Site");
+    			t11 = space();
     			div1 = element("div");
     			h21 = element("h2");
-    			t10 = text("Adicionar Servidor");
-    			t11 = space();
-    			label3 = element("label");
-    			t12 = text("Servidor\r\n                    ");
-    			input2 = element("input");
+    			t12 = text("Adicionar Servidor");
     			t13 = space();
     			label4 = element("label");
-    			t14 = text("IP\r\n                    ");
+    			t14 = text("Servidor\r\n              ");
     			input3 = element("input");
     			t15 = space();
     			label5 = element("label");
-    			t16 = text("Rancher\r\n                    ");
+    			t16 = text("IP\r\n              ");
     			input4 = element("input");
     			t17 = space();
     			label6 = element("label");
-    			t18 = text("PMA\r\n                    ");
+    			t18 = text("Rancher\r\n              ");
     			input5 = element("input");
     			t19 = space();
+    			label7 = element("label");
+    			t20 = text("PMA\r\n              ");
+    			input6 = element("input");
+    			t21 = space();
     			button1 = element("button");
-    			t20 = text("Adicionar Servidor");
+    			t22 = text("Adicionar Servidor");
     			this.h();
     		},
 
@@ -31943,38 +31955,50 @@ var app = (function () {
 
     			t0 = claim_text(h20_nodes, "Adicionar Site");
     			h20_nodes.forEach(detach);
-    			t1 = claim_text(div0_nodes, "\r\n                ");
+    			t1 = claim_text(div0_nodes, "\r\n            ");
 
     			label0 = claim_element(div0_nodes, "LABEL", { class: true }, false);
     			var label0_nodes = children(label0);
 
-    			t2 = claim_text(label0_nodes, "Site\r\n                    ");
+    			t2 = claim_text(label0_nodes, "Site\r\n              ");
 
     			input0 = claim_element(label0_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
     			var input0_nodes = children(input0);
 
     			input0_nodes.forEach(detach);
     			label0_nodes.forEach(detach);
-    			t3 = claim_text(div0_nodes, "\r\n                ");
+    			t3 = claim_text(div0_nodes, "\r\n            ");
 
     			label1 = claim_element(div0_nodes, "LABEL", { class: true }, false);
     			var label1_nodes = children(label1);
 
-    			t4 = claim_text(label1_nodes, "Link\r\n                    ");
+    			t4 = claim_text(label1_nodes, "Link\r\n              ");
 
     			input1 = claim_element(label1_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
     			var input1_nodes = children(input1);
 
     			input1_nodes.forEach(detach);
     			label1_nodes.forEach(detach);
-    			t5 = claim_text(div0_nodes, "\r\n                ");
+    			t5 = claim_text(div0_nodes, "\r\n            ");
 
     			label2 = claim_element(div0_nodes, "LABEL", { class: true }, false);
     			var label2_nodes = children(label2);
 
-    			t6 = claim_text(label2_nodes, "Servidor\r\n                    ");
+    			t6 = claim_text(label2_nodes, "Desativado?\r\n              ");
 
-    			select = claim_element(label2_nodes, "SELECT", { class: true }, false);
+    			input2 = claim_element(label2_nodes, "INPUT", { type: true, class: true }, false);
+    			var input2_nodes = children(input2);
+
+    			input2_nodes.forEach(detach);
+    			label2_nodes.forEach(detach);
+    			t7 = claim_text(div0_nodes, "\r\n\r\n            ");
+
+    			label3 = claim_element(div0_nodes, "LABEL", { class: true }, false);
+    			var label3_nodes = children(label3);
+
+    			t8 = claim_text(label3_nodes, "Servidor\r\n              ");
+
+    			select = claim_element(label3_nodes, "SELECT", { class: true }, false);
     			var select_nodes = children(select);
 
     			option = claim_element(select_nodes, "OPTION", { value: true }, false);
@@ -31987,16 +32011,16 @@ var app = (function () {
     			}
 
     			select_nodes.forEach(detach);
-    			label2_nodes.forEach(detach);
-    			t7 = claim_text(div0_nodes, "\r\n            ");
+    			label3_nodes.forEach(detach);
+    			t9 = claim_text(div0_nodes, "\r\n            ");
 
     			button0 = claim_element(div0_nodes, "BUTTON", { class: true, style: true }, false);
     			var button0_nodes = children(button0);
 
-    			t8 = claim_text(button0_nodes, "Adicionar Site");
+    			t10 = claim_text(button0_nodes, "Adicionar Site");
     			button0_nodes.forEach(detach);
     			div0_nodes.forEach(detach);
-    			t9 = claim_text(div2_nodes, "\r\n\r\n          ");
+    			t11 = claim_text(div2_nodes, "\r\n\r\n          ");
 
     			div1 = claim_element(div2_nodes, "DIV", { class: true }, false);
     			var div1_nodes = children(div1);
@@ -32004,62 +32028,62 @@ var app = (function () {
     			h21 = claim_element(div1_nodes, "H2", {}, false);
     			var h21_nodes = children(h21);
 
-    			t10 = claim_text(h21_nodes, "Adicionar Servidor");
+    			t12 = claim_text(h21_nodes, "Adicionar Servidor");
     			h21_nodes.forEach(detach);
-    			t11 = claim_text(div1_nodes, "\r\n                ");
-
-    			label3 = claim_element(div1_nodes, "LABEL", { class: true }, false);
-    			var label3_nodes = children(label3);
-
-    			t12 = claim_text(label3_nodes, "Servidor\r\n                    ");
-
-    			input2 = claim_element(label3_nodes, "INPUT", { required: true, class: true, type: true, placeholder: true }, false);
-    			var input2_nodes = children(input2);
-
-    			input2_nodes.forEach(detach);
-    			label3_nodes.forEach(detach);
-    			t13 = claim_text(div1_nodes, "\r\n                ");
+    			t13 = claim_text(div1_nodes, "\r\n            ");
 
     			label4 = claim_element(div1_nodes, "LABEL", { class: true }, false);
     			var label4_nodes = children(label4);
 
-    			t14 = claim_text(label4_nodes, "IP\r\n                    ");
+    			t14 = claim_text(label4_nodes, "Servidor\r\n              ");
 
     			input3 = claim_element(label4_nodes, "INPUT", { required: true, class: true, type: true, placeholder: true }, false);
     			var input3_nodes = children(input3);
 
     			input3_nodes.forEach(detach);
     			label4_nodes.forEach(detach);
-    			t15 = claim_text(div1_nodes, "\r\n                ");
+    			t15 = claim_text(div1_nodes, "\r\n            ");
 
     			label5 = claim_element(div1_nodes, "LABEL", { class: true }, false);
     			var label5_nodes = children(label5);
 
-    			t16 = claim_text(label5_nodes, "Rancher\r\n                    ");
+    			t16 = claim_text(label5_nodes, "IP\r\n              ");
 
     			input4 = claim_element(label5_nodes, "INPUT", { required: true, class: true, type: true, placeholder: true }, false);
     			var input4_nodes = children(input4);
 
     			input4_nodes.forEach(detach);
     			label5_nodes.forEach(detach);
-    			t17 = claim_text(div1_nodes, "\r\n                ");
+    			t17 = claim_text(div1_nodes, "\r\n            ");
 
     			label6 = claim_element(div1_nodes, "LABEL", { class: true }, false);
     			var label6_nodes = children(label6);
 
-    			t18 = claim_text(label6_nodes, "PMA\r\n                    ");
+    			t18 = claim_text(label6_nodes, "Rancher\r\n              ");
 
-    			input5 = claim_element(label6_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			input5 = claim_element(label6_nodes, "INPUT", { required: true, class: true, type: true, placeholder: true }, false);
     			var input5_nodes = children(input5);
 
     			input5_nodes.forEach(detach);
     			label6_nodes.forEach(detach);
-    			t19 = claim_text(div1_nodes, "\r\n                ");
+    			t19 = claim_text(div1_nodes, "\r\n            ");
+
+    			label7 = claim_element(div1_nodes, "LABEL", { class: true }, false);
+    			var label7_nodes = children(label7);
+
+    			t20 = claim_text(label7_nodes, "PMA\r\n              ");
+
+    			input6 = claim_element(label7_nodes, "INPUT", { class: true, type: true, placeholder: true }, false);
+    			var input6_nodes = children(input6);
+
+    			input6_nodes.forEach(detach);
+    			label7_nodes.forEach(detach);
+    			t21 = claim_text(div1_nodes, "\r\n            ");
 
     			button1 = claim_element(div1_nodes, "BUTTON", { class: true, style: true }, false);
     			var button1_nodes = children(button1);
 
-    			t20 = claim_text(button1_nodes, "Adicionar Servidor");
+    			t22 = claim_text(button1_nodes, "Adicionar Servidor");
     			button1_nodes.forEach(detach);
     			div1_nodes.forEach(detach);
     			div2_nodes.forEach(detach);
@@ -32067,78 +32091,84 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			add_location(h20, file$7, 217, 12, 6511);
+    			add_location(h20, file$7, 210, 12, 4982);
     			input0.className = "uk-input";
     			attr(input0, "type", "text");
     			input0.placeholder = "Nome";
-    			add_location(input0, file$7, 219, 20, 6585);
-    			label0.className = "svelte-1q75ahm";
-    			add_location(label0, file$7, 218, 16, 6552);
+    			add_location(input0, file$7, 213, 14, 5062);
+    			label0.className = "svelte-1st9ylq";
+    			add_location(label0, file$7, 211, 12, 5019);
     			input1.className = "uk-input";
     			attr(input1, "type", "text");
     			input1.placeholder = "URL";
-    			add_location(input1, file$7, 226, 20, 6825);
-    			label1.className = "svelte-1q75ahm";
-    			add_location(label1, file$7, 225, 16, 6792);
+    			add_location(input1, file$7, 221, 14, 5288);
+    			label1.className = "svelte-1st9ylq";
+    			add_location(label1, file$7, 219, 12, 5245);
+    			attr(input2, "type", "checkbox");
+    			input2.className = "uk-checkbox";
+    			add_location(input2, file$7, 229, 14, 5519);
+    			label2.className = "svelte-1st9ylq";
+    			add_location(label2, file$7, 227, 12, 5469);
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$7, 234, 24, 7150);
+    			add_location(option, file$7, 238, 16, 5799);
     			if (ctx.servselecionado === void 0) add_render_callback(() => ctx.select_change_handler.call(select));
     			select.className = "uk-select";
-    			add_location(select, file$7, 233, 20, 7069);
-    			label2.className = "svelte-1q75ahm";
-    			add_location(label2, file$7, 232, 16, 7032);
+    			add_location(select, file$7, 237, 14, 5726);
+    			label3.className = "svelte-1st9ylq";
+    			add_location(label3, file$7, 235, 12, 5679);
     			button0.className = "uk-button uk-button-default";
     			set_style(button0, "margin", "10px");
-    			add_location(button0, file$7, 240, 12, 7401);
-    			div0.className = "formsites svelte-1q75ahm";
-    			add_location(div0, file$7, 216, 10, 6474);
-    			add_location(h21, file$7, 248, 11, 7644);
-    			input2.required = true;
-    			input2.className = "uk-input";
-    			attr(input2, "type", "text");
-    			input2.placeholder = "Nome";
-    			add_location(input2, file$7, 250, 20, 7726);
-    			label3.className = "svelte-1q75ahm";
-    			add_location(label3, file$7, 249, 16, 7689);
+    			add_location(button0, file$7, 244, 12, 6021);
+    			div0.className = "formsites svelte-1st9ylq";
+    			add_location(div0, file$7, 209, 10, 4945);
+    			add_location(h21, file$7, 253, 12, 6272);
     			input3.required = true;
     			input3.className = "uk-input";
     			attr(input3, "type", "text");
-    			input3.placeholder = "ip";
-    			add_location(input3, file$7, 258, 20, 7996);
-    			label4.className = "svelte-1q75ahm";
-    			add_location(label4, file$7, 257, 16, 7965);
+    			input3.placeholder = "Nome";
+    			add_location(input3, file$7, 256, 14, 6360);
+    			label4.className = "svelte-1st9ylq";
+    			add_location(label4, file$7, 254, 12, 6313);
     			input4.required = true;
     			input4.className = "uk-input";
     			attr(input4, "type", "text");
-    			input4.placeholder = "URL";
-    			add_location(input4, file$7, 266, 20, 8264);
-    			label5.className = "svelte-1q75ahm";
-    			add_location(label5, file$7, 265, 16, 8228);
+    			input4.placeholder = "ip";
+    			add_location(input4, file$7, 265, 14, 6612);
+    			label5.className = "svelte-1st9ylq";
+    			add_location(label5, file$7, 263, 12, 6571);
+    			input5.required = true;
     			input5.className = "uk-input";
     			attr(input5, "type", "text");
     			input5.placeholder = "URL";
-    			add_location(input5, file$7, 274, 20, 8534);
-    			label6.className = "svelte-1q75ahm";
-    			add_location(label6, file$7, 273, 16, 8502);
+    			add_location(input5, file$7, 274, 14, 6860);
+    			label6.className = "svelte-1st9ylq";
+    			add_location(label6, file$7, 272, 12, 6814);
+    			input6.className = "uk-input";
+    			attr(input6, "type", "text");
+    			input6.placeholder = "URL";
+    			add_location(input6, file$7, 283, 14, 7110);
+    			label7.className = "svelte-1st9ylq";
+    			add_location(label7, file$7, 281, 12, 7068);
     			button1.className = "uk-button uk-button-default";
     			set_style(button1, "margin", "10px");
-    			add_location(button1, file$7, 280, 16, 8738);
-    			div1.className = "formsites svelte-1q75ahm";
-    			add_location(div1, file$7, 247, 10, 7608);
-    			div2.className = "uk-card uk-card-primary uk-width-1-1@m forms svelte-1q75ahm";
+    			add_location(button1, file$7, 289, 12, 7288);
+    			div1.className = "formsites svelte-1st9ylq";
+    			add_location(div1, file$7, 252, 10, 6235);
+    			div2.className = "uk-card uk-card-primary uk-width-1-1@m forms svelte-1st9ylq";
     			set_style(div2, "padding", "30px");
-    			add_location(div2, file$7, 213, 6, 6347);
+    			add_location(div2, file$7, 205, 8, 4803);
 
     			dispose = [
     				listen(input0, "input", ctx.input0_input_handler),
     				listen(input1, "input", ctx.input1_input_handler),
+    				listen(input2, "change", ctx.input2_change_handler),
     				listen(select, "change", ctx.select_change_handler),
     				listen(button0, "click", ctx.addSite),
-    				listen(input2, "input", ctx.input2_input_handler),
     				listen(input3, "input", ctx.input3_input_handler),
     				listen(input4, "input", ctx.input4_input_handler),
     				listen(input5, "input", ctx.input5_input_handler),
+    				listen(input6, "input", ctx.input6_input_handler),
     				listen(button1, "click", ctx.addServer)
     			];
     		},
@@ -32165,7 +32195,14 @@ var app = (function () {
     			append(div0, t5);
     			append(div0, label2);
     			append(label2, t6);
-    			append(label2, select);
+    			append(label2, input2);
+
+    			input2.checked = ctx.desativado;
+
+    			append(div0, t7);
+    			append(div0, label3);
+    			append(label3, t8);
+    			append(label3, select);
     			append(select, option);
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
@@ -32174,53 +32211,54 @@ var app = (function () {
 
     			select_option(select, ctx.servselecionado);
 
-    			append(div0, t7);
+    			append(div0, t9);
     			append(div0, button0);
-    			append(button0, t8);
-    			append(div2, t9);
+    			append(button0, t10);
+    			append(div2, t11);
     			append(div2, div1);
     			append(div1, h21);
-    			append(h21, t10);
-    			append(div1, t11);
-    			append(div1, label3);
-    			append(label3, t12);
-    			append(label3, input2);
-
-    			input2.value = ctx.servernome;
-
+    			append(h21, t12);
     			append(div1, t13);
     			append(div1, label4);
     			append(label4, t14);
     			append(label4, input3);
 
-    			input3.value = ctx.nip;
+    			input3.value = ctx.servernome;
 
     			append(div1, t15);
     			append(div1, label5);
     			append(label5, t16);
     			append(label5, input4);
 
-    			input4.value = ctx.nrancher;
+    			input4.value = ctx.nip;
 
     			append(div1, t17);
     			append(div1, label6);
     			append(label6, t18);
     			append(label6, input5);
 
-    			input5.value = ctx.npma;
+    			input5.value = ctx.nrancher;
 
     			append(div1, t19);
+    			append(div1, label7);
+    			append(label7, t20);
+    			append(label7, input6);
+
+    			input6.value = ctx.npma;
+
+    			append(div1, t21);
     			append(div1, button1);
-    			append(button1, t20);
+    			append(button1, t22);
     			current = true;
     		},
 
     		p: function update(changed, ctx) {
     			if (changed.nomesite && (input0.value !== ctx.nomesite)) input0.value = ctx.nomesite;
     			if (changed.urlsite && (input1.value !== ctx.urlsite)) input1.value = ctx.urlsite;
+    			if (changed.desativado) input2.checked = ctx.desativado;
 
-    			if (changed.servidores) {
-    				each_value_2 = ctx.servidores;
+    			if (changed.$servidores) {
+    				each_value_2 = ctx.$servidores;
 
     				for (var i = 0; i < each_value_2.length; i += 1) {
     					const child_ctx = get_each_context_2(ctx, each_value_2, i);
@@ -32241,10 +32279,10 @@ var app = (function () {
     			}
 
     			if (changed.servselecionado) select_option(select, ctx.servselecionado);
-    			if (changed.servernome && (input2.value !== ctx.servernome)) input2.value = ctx.servernome;
-    			if (changed.nip && (input3.value !== ctx.nip)) input3.value = ctx.nip;
-    			if (changed.nrancher && (input4.value !== ctx.nrancher)) input4.value = ctx.nrancher;
-    			if (changed.npma && (input5.value !== ctx.npma)) input5.value = ctx.npma;
+    			if (changed.servernome && (input3.value !== ctx.servernome)) input3.value = ctx.servernome;
+    			if (changed.nip && (input4.value !== ctx.nip)) input4.value = ctx.nip;
+    			if (changed.nrancher && (input5.value !== ctx.nrancher)) input5.value = ctx.nrancher;
+    			if (changed.npma && (input6.value !== ctx.npma)) input6.value = ctx.npma;
     		},
 
     		i: function intro(local) {
@@ -32280,9 +32318,9 @@ var app = (function () {
     	};
     }
 
-    // (236:24) {#each servidores as server}
+    // (240:16) {#each $servidores as server}
     function create_each_block_2(ctx) {
-    	var option, t_value = ctx.server.name, t, option_value_value;
+    	var option, t_value = ctx.server.nome, t, option_value_value;
 
     	return {
     		c: function create() {
@@ -32301,9 +32339,9 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			option.__value = option_value_value = ctx.server.id;
+    			option.__value = option_value_value = ctx.server.nome;
     			option.value = option.__value;
-    			add_location(option, file$7, 236, 24, 7249);
+    			add_location(option, file$7, 240, 18, 5885);
     		},
 
     		m: function mount(target, anchor) {
@@ -32312,11 +32350,11 @@ var app = (function () {
     		},
 
     		p: function update(changed, ctx) {
-    			if ((changed.servidores) && t_value !== (t_value = ctx.server.name)) {
+    			if ((changed.$servidores) && t_value !== (t_value = ctx.server.nome)) {
     				set_data(t, t_value);
     			}
 
-    			if ((changed.servidores) && option_value_value !== (option_value_value = ctx.server.id)) {
+    			if ((changed.$servidores) && option_value_value !== (option_value_value = ctx.server.nome)) {
     				option.__value = option_value_value;
     			}
 
@@ -32331,9 +32369,221 @@ var app = (function () {
     	};
     }
 
-    // (309:14) {#if site.servidores == server.id}
+    // (321:5) {:else}
+    function create_else_block_1(ctx) {
+    	var h60, a0, t0, a0_href_value, t1, h61, a1, t2, a1_href_value;
+
+    	return {
+    		c: function create() {
+    			h60 = element("h6");
+    			a0 = element("a");
+    			t0 = text("Rancher");
+    			t1 = space();
+    			h61 = element("h6");
+    			a1 = element("a");
+    			t2 = text("PMA");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			h60 = claim_element(nodes, "H6", { class: true }, false);
+    			var h60_nodes = children(h60);
+
+    			a0 = claim_element(h60_nodes, "A", { target: true, href: true }, false);
+    			var a0_nodes = children(a0);
+
+    			t0 = claim_text(a0_nodes, "Rancher");
+    			a0_nodes.forEach(detach);
+    			h60_nodes.forEach(detach);
+    			t1 = claim_text(nodes, "\r\n\t\t\t\t\t\t");
+
+    			h61 = claim_element(nodes, "H6", { class: true }, false);
+    			var h61_nodes = children(h61);
+
+    			a1 = claim_element(h61_nodes, "A", { target: true, href: true }, false);
+    			var a1_nodes = children(a1);
+
+    			t2 = claim_text(a1_nodes, "PMA");
+    			a1_nodes.forEach(detach);
+    			h61_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			a0.target = "_blank";
+    			a0.href = a0_href_value = ctx.server.rancher;
+    			add_location(a0, file$7, 322, 7, 8332);
+    			h60.className = "svelte-1st9ylq";
+    			add_location(h60, file$7, 321, 6, 8319);
+    			a1.target = "_blank";
+    			a1.href = a1_href_value = ctx.server.pma;
+    			add_location(a1, file$7, 325, 7, 8418);
+    			h61.className = "svelte-1st9ylq";
+    			add_location(h61, file$7, 324, 6, 8405);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, h60, anchor);
+    			append(h60, a0);
+    			append(a0, t0);
+    			insert(target, t1, anchor);
+    			insert(target, h61, anchor);
+    			append(h61, a1);
+    			append(a1, t2);
+    		},
+
+    		p: function update(changed, ctx) {
+    			if ((changed.$servidores) && a0_href_value !== (a0_href_value = ctx.server.rancher)) {
+    				a0.href = a0_href_value;
+    			}
+
+    			if ((changed.$servidores) && a1_href_value !== (a1_href_value = ctx.server.pma)) {
+    				a1.href = a1_href_value;
+    			}
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(h60);
+    				detach(t1);
+    				detach(h61);
+    			}
+    		}
+    	};
+    }
+
+    // (317:5) {#if server.rancher == "easyengine"}
+    function create_if_block_2$1(ctx) {
+    	var h6, a, t;
+
+    	return {
+    		c: function create() {
+    			h6 = element("h6");
+    			a = element("a");
+    			t = text("Easyengine");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			h6 = claim_element(nodes, "H6", { class: true }, false);
+    			var h6_nodes = children(h6);
+
+    			a = claim_element(h6_nodes, "A", { href: true }, false);
+    			var a_nodes = children(a);
+
+    			t = claim_text(a_nodes, "Easyengine");
+    			a_nodes.forEach(detach);
+    			h6_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			a.href = "#ee";
+    			add_location(a, file$7, 318, 7, 8256);
+    			h6.className = "svelte-1st9ylq";
+    			add_location(h6, file$7, 317, 6, 8243);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, h6, anchor);
+    			append(h6, a);
+    			append(a, t);
+    		},
+
+    		p: noop,
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(h6);
+    			}
+    		}
+    	};
+    }
+
+    // (344:14) {#if site.servidor == server.nome}
     function create_if_block$4(ctx) {
-    	var div, a0, t0_value = ctx.site.title.rendered, t0, t1, a1, t2, a1_name_value, div_transition, current, dispose;
+    	var current_block_type_index, if_block, if_block_anchor, current;
+
+    	var if_block_creators = [
+    		create_if_block_1$2,
+    		create_else_block$2
+    	];
+
+    	var if_blocks = [];
+
+    	function select_block_type_1(ctx) {
+    		if (ctx.site.desativado) return 0;
+    		return 1;
+    	}
+
+    	current_block_type_index = select_block_type_1(ctx);
+    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+
+    	return {
+    		c: function create() {
+    			if_block.c();
+    			if_block_anchor = empty();
+    		},
+
+    		l: function claim(nodes) {
+    			if_block.l(nodes);
+    			if_block_anchor = empty();
+    		},
+
+    		m: function mount(target, anchor) {
+    			if_blocks[current_block_type_index].m(target, anchor);
+    			insert(target, if_block_anchor, anchor);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			var previous_block_index = current_block_type_index;
+    			current_block_type_index = select_block_type_1(ctx);
+    			if (current_block_type_index === previous_block_index) {
+    				if_blocks[current_block_type_index].p(changed, ctx);
+    			} else {
+    				group_outros();
+    				on_outro(() => {
+    					if_blocks[previous_block_index].d(1);
+    					if_blocks[previous_block_index] = null;
+    				});
+    				if_block.o(1);
+    				check_outros();
+
+    				if_block = if_blocks[current_block_type_index];
+    				if (!if_block) {
+    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    					if_block.c();
+    				}
+    				if_block.i(1);
+    				if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			if (if_block) if_block.i();
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (if_block) if_block.o();
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if_blocks[current_block_type_index].d(detaching);
+
+    			if (detaching) {
+    				detach(if_block_anchor);
+    			}
+    		}
+    	};
+    }
+
+    // (350:16) {:else}
+    function create_else_block$2(ctx) {
+    	var div, a0, t0_value = ctx.site.nome, t0, a0_href_value, t1, a1, t2, a1_name_value, div_transition, current, dispose;
 
     	return {
     		c: function create() {
@@ -32355,9 +32605,9 @@ var app = (function () {
 
     			t0 = claim_text(a0_nodes, t0_value);
     			a0_nodes.forEach(detach);
-    			t1 = claim_text(div_nodes, "\r\n                  ");
+    			t1 = claim_text(div_nodes, "\r\n                    ");
 
-    			a1 = claim_element(div_nodes, "A", { href: true, name: true, class: true }, false);
+    			a1 = claim_element(div_nodes, "A", { href: true, class: true, name: true }, false);
     			var a1_nodes = children(a1);
 
     			t2 = claim_text(a1_nodes, "x");
@@ -32367,16 +32617,16 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			a0.href = "#asd";
-    			a0.className = "svelte-1q75ahm";
-    			add_location(a0, file$7, 310, 18, 9915);
+    			a0.href = a0_href_value = "//" + ctx.site.url;
+    			a0.className = "svelte-1st9ylq";
+    			add_location(a0, file$7, 351, 20, 9393);
     			a1.href = "#remove";
+    			a1.className = "btx svelte-1st9ylq";
     			attr(a1, "name", a1_name_value = ctx.site.id);
-    			a1.className = "svelte-1q75ahm";
-    			add_location(a1, file$7, 311, 18, 9976);
-    			div.className = "listasites svelte-1q75ahm";
-    			add_location(div, file$7, 309, 16, 9854);
-    			dispose = listen(a1, "click", removeSite);
+    			add_location(a1, file$7, 352, 20, 9453);
+    			div.className = "listasites svelte-1st9ylq";
+    			add_location(div, file$7, 350, 18, 9330);
+    			dispose = listen(a1, "click", removeItem$2);
     		},
 
     		m: function mount(target, anchor) {
@@ -32390,11 +32640,15 @@ var app = (function () {
     		},
 
     		p: function update(changed, ctx) {
-    			if ((!current || changed.sites3lados) && t0_value !== (t0_value = ctx.site.title.rendered)) {
+    			if ((!current || changed.$sites3lados) && t0_value !== (t0_value = ctx.site.nome)) {
     				set_data(t0, t0_value);
     			}
 
-    			if ((!current || changed.sites3lados) && a1_name_value !== (a1_name_value = ctx.site.id)) {
+    			if ((!current || changed.$sites3lados) && a0_href_value !== (a0_href_value = "//" + ctx.site.url)) {
+    				a0.href = a0_href_value;
+    			}
+
+    			if ((!current || changed.$sites3lados) && a1_name_value !== (a1_name_value = ctx.site.id)) {
     				attr(a1, "name", a1_name_value);
     			}
     		},
@@ -32427,11 +32681,111 @@ var app = (function () {
     	};
     }
 
-    // (308:12) {#each sites3lados as site, i}
+    // (345:16) {#if site.desativado}
+    function create_if_block_1$2(ctx) {
+    	var div, a0, t0_value = ctx.site.nome, t0, a0_href_value, t1, a1, t2, a1_name_value, div_transition, current, dispose;
+
+    	return {
+    		c: function create() {
+    			div = element("div");
+    			a0 = element("a");
+    			t0 = text(t0_value);
+    			t1 = space();
+    			a1 = element("a");
+    			t2 = text("x");
+    			this.h();
+    		},
+
+    		l: function claim(nodes) {
+    			div = claim_element(nodes, "DIV", { class: true }, false);
+    			var div_nodes = children(div);
+
+    			a0 = claim_element(div_nodes, "A", { href: true, class: true }, false);
+    			var a0_nodes = children(a0);
+
+    			t0 = claim_text(a0_nodes, t0_value);
+    			a0_nodes.forEach(detach);
+    			t1 = claim_text(div_nodes, "\r\n                    ");
+
+    			a1 = claim_element(div_nodes, "A", { href: true, class: true, name: true }, false);
+    			var a1_nodes = children(a1);
+
+    			t2 = claim_text(a1_nodes, "x");
+    			a1_nodes.forEach(detach);
+    			div_nodes.forEach(detach);
+    			this.h();
+    		},
+
+    		h: function hydrate() {
+    			a0.href = a0_href_value = "//" + ctx.site.url;
+    			a0.className = "inativo svelte-1st9ylq";
+    			add_location(a0, file$7, 346, 20, 9111);
+    			a1.href = "#remove";
+    			a1.className = "btx svelte-1st9ylq";
+    			attr(a1, "name", a1_name_value = ctx.site.id);
+    			add_location(a1, file$7, 347, 20, 9187);
+    			div.className = "listasites svelte-1st9ylq";
+    			add_location(div, file$7, 345, 18, 9048);
+    			dispose = listen(a1, "click", removeItem$2);
+    		},
+
+    		m: function mount(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, a0);
+    			append(a0, t0);
+    			append(div, t1);
+    			append(div, a1);
+    			append(a1, t2);
+    			current = true;
+    		},
+
+    		p: function update(changed, ctx) {
+    			if ((!current || changed.$sites3lados) && t0_value !== (t0_value = ctx.site.nome)) {
+    				set_data(t0, t0_value);
+    			}
+
+    			if ((!current || changed.$sites3lados) && a0_href_value !== (a0_href_value = "//" + ctx.site.url)) {
+    				a0.href = a0_href_value;
+    			}
+
+    			if ((!current || changed.$sites3lados) && a1_name_value !== (a1_name_value = ctx.site.id)) {
+    				attr(a1, "name", a1_name_value);
+    			}
+    		},
+
+    		i: function intro(local) {
+    			if (current) return;
+    			add_render_callback(() => {
+    				if (!div_transition) div_transition = create_bidirectional_transition(div, slide, {}, true);
+    				div_transition.run(1);
+    			});
+
+    			current = true;
+    		},
+
+    		o: function outro(local) {
+    			if (!div_transition) div_transition = create_bidirectional_transition(div, slide, {}, false);
+    			div_transition.run(0);
+
+    			current = false;
+    		},
+
+    		d: function destroy(detaching) {
+    			if (detaching) {
+    				detach(div);
+    				if (div_transition) div_transition.end();
+    			}
+
+    			dispose();
+    		}
+    	};
+    }
+
+    // (343:12) {#each $sites3lados as site, i}
     function create_each_block_1(ctx) {
     	var if_block_anchor, current;
 
-    	var if_block = (ctx.site.servidores == ctx.server.id) && create_if_block$4(ctx);
+    	var if_block = (ctx.site.servidor == ctx.server.nome) && create_if_block$4(ctx);
 
     	return {
     		c: function create() {
@@ -32451,7 +32805,7 @@ var app = (function () {
     		},
 
     		p: function update(changed, ctx) {
-    			if (ctx.site.servidores == ctx.server.id) {
+    			if (ctx.site.servidor == ctx.server.nome) {
     				if (if_block) {
     					if_block.p(changed, ctx);
     					if_block.i(1);
@@ -32494,11 +32848,19 @@ var app = (function () {
     	};
     }
 
-    // (292:8) {#each servidores as server}
+    // (302:8) {#each $servidores as server}
     function create_each_block$2(ctx) {
-    	var div2, ul, li, a0, t0_value = ctx.server.name, t0, t1, div1, div0, h60, t2_value = ctx.server.ip, t2, t3, h61, a1, t4_value = ctx.server.rancher, t4, a1_href_value, t5, h62, a2, t6_value = ctx.server.phpmyadmin, t6, a2_href_value, t7, t8, current;
+    	var div2, ul, li, a0, t0_value = ctx.server.nome, t0, t1, div1, div0, h60, input, input_value_value, input_id_value, t2, t3, h61, a1, t4, a1_name_value, t5, t6, current, dispose;
 
-    	var each_value_1 = ctx.sites3lados;
+    	function select_block_type(ctx) {
+    		if (ctx.server.rancher == "easyengine") return create_if_block_2$1;
+    		return create_else_block_1;
+    	}
+
+    	var current_block_type = select_block_type(ctx);
+    	var if_block = current_block_type(ctx);
+
+    	var each_value_1 = ctx.$sites3lados;
 
     	var each_blocks = [];
 
@@ -32530,22 +32892,20 @@ var app = (function () {
     			div1 = element("div");
     			div0 = element("div");
     			h60 = element("h6");
-    			t2 = text(t2_value);
+    			input = element("input");
+    			t2 = space();
+    			if_block.c();
     			t3 = space();
     			h61 = element("h6");
     			a1 = element("a");
-    			t4 = text(t4_value);
+    			t4 = text("deletar");
     			t5 = space();
-    			h62 = element("h6");
-    			a2 = element("a");
-    			t6 = text(t6_value);
-    			t7 = space();
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t8 = space();
+    			t6 = space();
     			this.h();
     		},
 
@@ -32564,7 +32924,7 @@ var app = (function () {
 
     			t0 = claim_text(a0_nodes, t0_value);
     			a0_nodes.forEach(detach);
-    			t1 = claim_text(li_nodes, "\r\n                  ");
+    			t1 = claim_text(li_nodes, "\r\n                ");
 
     			div1 = claim_element(li_nodes, "DIV", { class: true }, false);
     			var div1_nodes = children(div1);
@@ -32575,68 +32935,69 @@ var app = (function () {
     			h60 = claim_element(div0_nodes, "H6", { class: true }, false);
     			var h60_nodes = children(h60);
 
-    			t2 = claim_text(h60_nodes, t2_value);
+    			input = claim_element(h60_nodes, "INPUT", { value: true, id: true, class: true }, false);
+    			var input_nodes = children(input);
+
+    			input_nodes.forEach(detach);
     			h60_nodes.forEach(detach);
-    			t3 = claim_text(div0_nodes, "\r\n                        ");
+    			t2 = claim_text(div0_nodes, "\r\n\t\t\t\t\t");
+    			if_block.l(div0_nodes);
+    			t3 = claim_text(div0_nodes, "\r\n                    ");
 
     			h61 = claim_element(div0_nodes, "H6", { class: true }, false);
     			var h61_nodes = children(h61);
 
-    			a1 = claim_element(h61_nodes, "A", { href: true }, false);
+    			a1 = claim_element(h61_nodes, "A", { href: true, name: true, style: true }, false);
     			var a1_nodes = children(a1);
 
-    			t4 = claim_text(a1_nodes, t4_value);
+    			t4 = claim_text(a1_nodes, "deletar");
     			a1_nodes.forEach(detach);
     			h61_nodes.forEach(detach);
-    			t5 = claim_text(div0_nodes, "\r\n                        ");
-
-    			h62 = claim_element(div0_nodes, "H6", { class: true }, false);
-    			var h62_nodes = children(h62);
-
-    			a2 = claim_element(h62_nodes, "A", { href: true }, false);
-    			var a2_nodes = children(a2);
-
-    			t6 = claim_text(a2_nodes, t6_value);
-    			a2_nodes.forEach(detach);
-    			h62_nodes.forEach(detach);
     			div0_nodes.forEach(detach);
     			div1_nodes.forEach(detach);
     			li_nodes.forEach(detach);
     			ul_nodes.forEach(detach);
-    			t7 = claim_text(div2_nodes, "\r\n             \r\n            ");
+    			t5 = claim_text(div2_nodes, "\r\n\r\n            ");
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].l(div2_nodes);
     			}
 
-    			t8 = claim_text(div2_nodes, "\r\n          ");
+    			t6 = claim_text(div2_nodes, "\r\n          ");
     			div2_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			a0.className = "uk-accordion-title svelte-1q75ahm";
+    			a0.className = "uk-accordion-title svelte-1st9ylq";
     			a0.href = "#";
-    			add_location(a0, file$7, 296, 18, 9253);
-    			h60.className = "svelte-1q75ahm";
-    			add_location(h60, file$7, 299, 24, 9442);
-    			a1.href = a1_href_value = ctx.server.rancher;
-    			add_location(a1, file$7, 300, 28, 9492);
-    			h61.className = "svelte-1q75ahm";
-    			add_location(h61, file$7, 300, 24, 9488);
-    			a2.href = a2_href_value = ctx.server.phpmyadmin;
-    			add_location(a2, file$7, 301, 28, 9574);
-    			h62.className = "svelte-1q75ahm";
-    			add_location(h62, file$7, 301, 24, 9570);
-    			div0.className = "detalhes-server svelte-1q75ahm";
-    			add_location(div0, file$7, 298, 22, 9387);
+    			add_location(a0, file$7, 306, 16, 7777);
+    			input.value = input_value_value = ctx.server.ip;
+    			input.id = input_id_value = ctx.server.ip;
+    			input.className = "ip svelte-1st9ylq";
+    			add_location(input, file$7, 310, 22, 7984);
+    			h60.className = "svelte-1st9ylq";
+    			add_location(h60, file$7, 309, 20, 7956);
+    			a1.href = "#remove";
+    			attr(a1, "name", a1_name_value = ctx.server.id);
+    			set_style(a1, "color", "red");
+    			add_location(a1, file$7, 329, 22, 8537);
+    			h61.className = "svelte-1st9ylq";
+    			add_location(h61, file$7, 328, 20, 8509);
+    			div0.className = "detalhes-server svelte-1st9ylq";
+    			add_location(div0, file$7, 308, 18, 7905);
     			div1.className = "uk-accordion-content";
-    			add_location(div1, file$7, 297, 18, 9329);
-    			add_location(li, file$7, 295, 14, 9229);
+    			add_location(div1, file$7, 307, 16, 7851);
+    			add_location(li, file$7, 305, 14, 7755);
     			attr(ul, "uk-accordion", "collapsible: true");
-    			add_location(ul, file$7, 294, 12, 9176);
-    			div2.className = "servers svelte-1q75ahm";
-    			add_location(div2, file$7, 292, 10, 9127);
+    			add_location(ul, file$7, 304, 12, 7702);
+    			div2.className = "servers svelte-1st9ylq";
+    			add_location(div2, file$7, 302, 10, 7665);
+
+    			dispose = [
+    				listen(input, "click", selecionarCopiar),
+    				listen(a1, "click", removeServer)
+    			];
     		},
 
     		m: function mount(target, anchor) {
@@ -32649,52 +33010,53 @@ var app = (function () {
     			append(li, div1);
     			append(div1, div0);
     			append(div0, h60);
-    			append(h60, t2);
+    			append(h60, input);
+    			append(div0, t2);
+    			if_block.m(div0, null);
     			append(div0, t3);
     			append(div0, h61);
     			append(h61, a1);
     			append(a1, t4);
-    			append(div0, t5);
-    			append(div0, h62);
-    			append(h62, a2);
-    			append(a2, t6);
-    			append(div2, t7);
+    			append(div2, t5);
 
     			for (var i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(div2, null);
     			}
 
-    			append(div2, t8);
+    			append(div2, t6);
     			current = true;
     		},
 
     		p: function update(changed, ctx) {
-    			if ((!current || changed.servidores) && t0_value !== (t0_value = ctx.server.name)) {
+    			if ((!current || changed.$servidores) && t0_value !== (t0_value = ctx.server.nome)) {
     				set_data(t0, t0_value);
     			}
 
-    			if ((!current || changed.servidores) && t2_value !== (t2_value = ctx.server.ip)) {
-    				set_data(t2, t2_value);
+    			if ((!current || changed.$servidores) && input_value_value !== (input_value_value = ctx.server.ip)) {
+    				input.value = input_value_value;
     			}
 
-    			if ((!current || changed.servidores) && t4_value !== (t4_value = ctx.server.rancher)) {
-    				set_data(t4, t4_value);
+    			if ((!current || changed.$servidores) && input_id_value !== (input_id_value = ctx.server.ip)) {
+    				input.id = input_id_value;
     			}
 
-    			if ((!current || changed.servidores) && a1_href_value !== (a1_href_value = ctx.server.rancher)) {
-    				a1.href = a1_href_value;
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(changed, ctx);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(div0, t3);
+    				}
     			}
 
-    			if ((!current || changed.servidores) && t6_value !== (t6_value = ctx.server.phpmyadmin)) {
-    				set_data(t6, t6_value);
+    			if ((!current || changed.$servidores) && a1_name_value !== (a1_name_value = ctx.server.id)) {
+    				attr(a1, "name", a1_name_value);
     			}
 
-    			if ((!current || changed.servidores) && a2_href_value !== (a2_href_value = ctx.server.phpmyadmin)) {
-    				a2.href = a2_href_value;
-    			}
-
-    			if (changed.sites3lados || changed.servidores || changed.removeSite) {
-    				each_value_1 = ctx.sites3lados;
+    			if (changed.$sites3lados || changed.$servidores || changed.removeItem) {
+    				each_value_1 = ctx.$sites3lados;
 
     				for (var i = 0; i < each_value_1.length; i += 1) {
     					const child_ctx = get_each_context_1(ctx, each_value_1, i);
@@ -32706,7 +33068,7 @@ var app = (function () {
     						each_blocks[i] = create_each_block_1(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].i(1);
-    						each_blocks[i].m(div2, t8);
+    						each_blocks[i].m(div2, t6);
     					}
     				}
 
@@ -32735,7 +33097,11 @@ var app = (function () {
     				detach(div2);
     			}
 
+    			if_block.d();
+
     			destroy_each(each_blocks, detaching);
+
+    			run_all(dispose);
     		}
     	};
     }
@@ -32743,9 +33109,9 @@ var app = (function () {
     function create_fragment$9(ctx) {
     	var div4, div0, t0, div3, div2, h1, t1, button, button_uk_icon_value, t2, t3, div1, current, dispose;
 
-    	var if_block = (ctx.mostrar) && create_if_block_1$2(ctx);
+    	var if_block = (ctx.mostrar) && create_if_block_3(ctx);
 
-    	var each_value = ctx.servidores;
+    	var each_value = ctx.$servidores;
 
     	var each_blocks = [];
 
@@ -32774,7 +33140,7 @@ var app = (function () {
     			div3 = element("div");
     			div2 = element("div");
     			h1 = element("h1");
-    			t1 = text("Sites\r\n      ");
+    			t1 = text("Sites\r\n        ");
     			button = element("button");
     			t2 = space();
     			if (if_block) if_block.c();
@@ -32806,14 +33172,14 @@ var app = (function () {
     			h1 = claim_element(div2_nodes, "H1", {}, false);
     			var h1_nodes = children(h1);
 
-    			t1 = claim_text(h1_nodes, "Sites\r\n      ");
+    			t1 = claim_text(h1_nodes, "Sites\r\n        ");
 
-    			button = claim_element(h1_nodes, "BUTTON", { "uk-icon": true, class: true }, false);
+    			button = claim_element(h1_nodes, "BUTTON", { "uk-icon": true, class: true, style: true }, false);
     			var button_nodes = children(button);
 
     			button_nodes.forEach(detach);
     			h1_nodes.forEach(detach);
-    			t2 = claim_text(div2_nodes, "\r\n      \r\n      \r\n      ");
+    			t2 = claim_text(div2_nodes, "\r\n\r\n      ");
     			if (if_block) if_block.l(div2_nodes);
     			t3 = claim_text(div2_nodes, "\r\n\r\n      \r\n      ");
 
@@ -32833,19 +33199,20 @@ var app = (function () {
 
     		h: function hydrate() {
     			div0.className = "sidebar esquerda";
-    			add_location(div0, file$7, 201, 2, 6023);
+    			add_location(div0, file$7, 190, 2, 4431);
     			attr(button, "uk-icon", button_uk_icon_value = "icon: " + (ctx.mostrar ? 'minus-circle' : 'plus-circle'));
     			button.className = "uk-button uk-button-body";
-    			add_location(button, file$7, 208, 6, 6150);
-    			add_location(h1, file$7, 207, 6, 6133);
-    			div1.className = "sites svelte-1q75ahm";
-    			add_location(div1, file$7, 290, 6, 9058);
+    			set_style(button, "color", "#fff");
+    			add_location(button, file$7, 197, 8, 4562);
+    			add_location(h1, file$7, 195, 6, 4533);
+    			div1.className = "sites svelte-1st9ylq";
+    			add_location(div1, file$7, 300, 6, 7595);
     			div2.className = "colunas nested";
-    			add_location(div2, file$7, 206, 4, 6097);
+    			add_location(div2, file$7, 194, 4, 4497);
     			div3.className = "centro";
-    			add_location(div3, file$7, 204, 2, 6069);
+    			add_location(div3, file$7, 192, 2, 4469);
     			div4.className = "main";
-    			add_location(div4, file$7, 200, 0, 6001);
+    			add_location(div4, file$7, 189, 0, 4409);
     			dispose = listen(button, "click", ctx.toggleMostrarForms);
     		},
 
@@ -32880,7 +33247,7 @@ var app = (function () {
     					if_block.p(changed, ctx);
     					if_block.i(1);
     				} else {
-    					if_block = create_if_block_1$2(ctx);
+    					if_block = create_if_block_3(ctx);
     					if_block.c();
     					if_block.i(1);
     					if_block.m(div2, t3);
@@ -32896,8 +33263,8 @@ var app = (function () {
     				check_outros();
     			}
 
-    			if (changed.sites3lados || changed.servidores || changed.removeSite) {
-    				each_value = ctx.servidores;
+    			if (changed.$sites3lados || changed.$servidores || changed.removeItem || changed.removeServer || changed.selecionarCopiar) {
+    				each_value = ctx.$servidores;
 
     				for (var i = 0; i < each_value.length; i += 1) {
     					const child_ctx = get_each_context$2(ctx, each_value, i);
@@ -32951,135 +33318,107 @@ var app = (function () {
     	};
     }
 
-    let URL = "teste.3lados.com.br";
-
-    let tokenteste3lados =
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC90ZXN0ZS4zbGFkb3MuY29tLmJyIiwiaWF0IjoxNTYyNTI3MDEyLCJuYmYiOjE1NjI1MjcwMTIsImV4cCI6MTU2MzEzMTgxMiwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMSJ9fX0.BeimZerzRa2-EEv4K86mwEMicE_7G_WN4hegKb92H5c";
-
-    function removeSite(e) {
-      let id = e.target.name;
-      {
-        var post = new XMLHttpRequest();
-        post.open("DELETE", "http://" + URL + "/wp-json/wp/v2/sites/" + id);
-        post.setRequestHeader("Authorization", "Bearer " + tokenteste3lados);
-        post.send();
-        post.onreadystatechange = function() {
-          console.log(post);
-          console.log(post.readyState);
-          if (post.readyState == 4) {
-            if (post.status == 200) {
-              window.location = "/";
-            } else {
-              alert("Error - try again.");
-            }
-          }
-        };
+    function removeItem$2(event) {
+      event.preventDefault();
+      // console.log(event.target.name);
+      // console.log(event.detail);
+      const id = event.target.name;
+      // const { id } = event.detail;
+      console.log(id);
+    	var r = confirm("Tem certeza que deseja deletar esse site?");
+      if (r == true) {
+        db$1.collection("sites")
+          .doc(id)
+          .delete();
+      } else {
+        return false;
       }
     }
 
-    function instance$9($$self, $$props, $$invalidate) {
-    	
-      
-      let { url = "/sites" } = $$props;
+    function removeServer(event) {
+      event.preventDefault();
+      // console.log(event.target.name);
+      // console.log(event.detail);
+      const id = event.target.name;
+      // const { id } = event.detail;
+      console.log(id);
 
-      let sites3lados = [];
-      let servidores = [];
+      var r = confirm("Tem certeza que deseja deletar o servidor?");
+      if (r == true) {
+        db$1.collection("servidores")
+          .doc(id)
+          .delete();
+      } else {
+        return false;
+      }
+    }
+
+    function selecionarCopiar(event) {
+      const input = document.getElementById(event.target.id);
+      console.log(input);
+      input.focus();
+      input.select();
+      document.execCommand("copy");
+    }
+
+    function instance$9($$self, $$props, $$invalidate) {
+    	let $servidores, $sites3lados;
+
+    	
+
       let servselecionado = "";
       let nomesite = "";
       let urlsite = "";
-
       let servernome = "";
       let nrancher = "";
       let npma = "";
       let nip = "";
+      let desativado = false;
 
-      onMount(async () => {
-        // const res = await fetch(`https://eurovinhos.ml/wc-api/v3/products/?per_page=20&consumer_key=ck_a232b308626bec11aae453b858b2ef36090c4b5f&consumer_secret=cs_18c14d587c2bd007f518fdb5e8c04283c7bb4956`);
-        // products = await res.json();
-        $$invalidate('sites3lados', sites3lados = await fetch(`http://` + URL + `/wp-json/wp/v2/sites`).then(
-          r => r.json()
-        ));
-        $$invalidate('servidores', servidores = await fetch(
-          `http://` + URL + `/wp-json/wp/v2/servidores`
-        ).then(r => r.json()));
-        // servidores = await fetch(
-        //   `https://jsonplaceholder.typicode.com/photos?_limit=20`
-        // ).then(r => r.json());
-        console.log(servidores);
-      });
+      const addServer = e => {
+        console.log(e);
+        // itemsTab1 = [...itemsTab1, novoItem];
+        db$1.collection("servidores").add({
+          nome: servernome,
+          ip: nip,
+          rancher: nrancher,
+    	  pma: npma,
+    	  created: Date.now()
+    	});
+    	$$invalidate('servernome', servernome = "");
+    	$$invalidate('nip', nip = "");
+    	$$invalidate('nrancher', nrancher = "");
+    	$$invalidate('npma', npma = "");
+      };
 
-      function addSite() {
-        var ourPostData = {
-          title: nomesite,
-          content: urlsite,
-          servidores: servselecionado,
-          status: "publish",
-        };
+      const addSite = e => {
+        console.log(e);
+        // itemsTab1 = [...itemsTab1, novoItem];
+        db$1.collection("sites").add({
+          nome: nomesite,
+          servidor: servselecionado,
+          url: urlsite,
+          desativado: desativado,
+          created: Date.now()
+        });
+        $$invalidate('nomesite', nomesite = "");
+    	$$invalidate('urlsite', urlsite = "");
+    	$$invalidate('desativado', desativado = false);
+      };
 
-        var createPost = new XMLHttpRequest();
-        createPost.open("POST", "http://" + URL + "/wp-json/wp/v2/sites");
-        createPost.setRequestHeader("Authorization", "Bearer " + tokenteste3lados);
-        // createPost.setRequestHeader("X-WP-Nonce", nonce.nonce);
-        createPost.setRequestHeader(
-          "Content-Type",
-          "application/json; charset=UTF-8"
-        );
-        // createPost.setRequestHeader("Accept", "*/*");
-        // createPost.setRequestHeader("Access-Control-Allow-Headers", "*");
-        // createPost.setRequestHeader("Access-Control-Allow-Origin", "*");
-        // createPost.setRequestHeader("Cache-Control", "no-cache");
-        // createPost.setRequestHeader("Origin", "http://localhost:5000/");
-        createPost.send(JSON.stringify(ourPostData));
-        createPost.onreadystatechange = function() {
-          console.log(createPost);
-          if (createPost.readyState == 4) {
-            if (createPost.status == 201) {
-              $$invalidate('nomesite', nomesite = "");
-              $$invalidate('urlsite', urlsite = "");
-              window.location = "/";
-            } else {
-              alert("Error - try again.");
-            }
-          }
-        };
-      }
+      let { uid } = $$props;
 
-      function addServer() {
-        var ourPostData = {
-          name: servernome,
-          nrancher: nrancher,
-          nip: nip,
-          npma: npma,
-        };
+      const queryserv = db$1.collection("servidores").orderBy("nome");
+      const servidores = collectionData(queryserv, "id").pipe(startWith([])); validate_store(servidores, 'servidores'); subscribe($$self, servidores, $$value => { $servidores = $$value; $$invalidate('$servidores', $servidores); });
 
-        var createPost = new XMLHttpRequest();
-        createPost.open("POST", "http://" + URL + "/wp-json/wp/v2/servidores");
-        createPost.setRequestHeader("Authorization", "Bearer " + tokenteste3lados);
-        createPost.setRequestHeader(
-          "Content-Type",
-          "application/json; charset=UTF-8"
-        );
-        createPost.send(JSON.stringify(ourPostData));
-          console.log(ourPostData);
-        createPost.onreadystatechange = function() {
-          if (createPost.readyState == 4) {
-            if (createPost.status == 201) {
-              $$invalidate('servernome', servernome = "");
-              $$invalidate('nrancher', nrancher = "");
-              $$invalidate('nip', nip = "");
-              $$invalidate('npma', npma = "");
-              window.location = "/";
-            } else {
-              alert("Error - try again.");
-            }
-          }
-        };
-      }
+      const querysite = db$1.collection("sites").orderBy("nome");
+      const sites3lados = collectionData(querysite, "id").pipe(startWith([])); validate_store(sites3lados, 'sites3lados'); subscribe($$self, sites3lados, $$value => { $sites3lados = $$value; $$invalidate('$sites3lados', $sites3lados); });
+      // console.log(servidores);
 
       let mostrar = false;
       const toggleMostrarForms = () => { const $$result = (mostrar = !mostrar); $$invalidate('mostrar', mostrar); return $$result; };
 
-    	const writable_props = ['url'];
+    	const writable_props = ['uid'];
     	Object.keys($$props).forEach(key => {
     		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<Sites> was created with unknown prop '${key}'`);
     	});
@@ -33094,40 +33433,41 @@ var app = (function () {
     		$$invalidate('urlsite', urlsite);
     	}
 
+    	function input2_change_handler() {
+    		desativado = this.checked;
+    		$$invalidate('desativado', desativado);
+    	}
+
     	function select_change_handler() {
     		servselecionado = select_value(this);
     		$$invalidate('servselecionado', servselecionado);
-    		$$invalidate('servidores', servidores);
     	}
 
-    	function input2_input_handler() {
+    	function input3_input_handler() {
     		servernome = this.value;
     		$$invalidate('servernome', servernome);
     	}
 
-    	function input3_input_handler() {
+    	function input4_input_handler() {
     		nip = this.value;
     		$$invalidate('nip', nip);
     	}
 
-    	function input4_input_handler() {
+    	function input5_input_handler() {
     		nrancher = this.value;
     		$$invalidate('nrancher', nrancher);
     	}
 
-    	function input5_input_handler() {
+    	function input6_input_handler() {
     		npma = this.value;
     		$$invalidate('npma', npma);
     	}
 
     	$$self.$set = $$props => {
-    		if ('url' in $$props) $$invalidate('url', url = $$props.url);
+    		if ('uid' in $$props) $$invalidate('uid', uid = $$props.uid);
     	};
 
     	return {
-    		url,
-    		sites3lados,
-    		servidores,
     		servselecionado,
     		nomesite,
     		urlsite,
@@ -33135,31 +33475,44 @@ var app = (function () {
     		nrancher,
     		npma,
     		nip,
-    		addSite,
+    		desativado,
     		addServer,
+    		addSite,
+    		uid,
+    		servidores,
+    		sites3lados,
     		mostrar,
     		toggleMostrarForms,
+    		$servidores,
+    		$sites3lados,
     		input0_input_handler,
     		input1_input_handler,
+    		input2_change_handler,
     		select_change_handler,
-    		input2_input_handler,
     		input3_input_handler,
     		input4_input_handler,
-    		input5_input_handler
+    		input5_input_handler,
+    		input6_input_handler
     	};
     }
 
     class Sites extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$9, create_fragment$9, safe_not_equal, ["url"]);
+    		init(this, options, instance$9, create_fragment$9, safe_not_equal, ["uid"]);
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+    		if (ctx.uid === undefined && !('uid' in props)) {
+    			console.warn("<Sites> was created without expected prop 'uid'");
+    		}
     	}
 
-    	get url() {
+    	get uid() {
     		throw new Error("<Sites>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
-    	set url(value) {
+    	set uid(value) {
     		throw new Error("<Sites>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -33218,8 +33571,8 @@ var app = (function () {
     	};
     }
 
-    // (62:8) {:else}
-    function create_else_block$2(ctx) {
+    // (67:6) {:else}
+    function create_else_block$3(ctx) {
     	var button, t, dispose;
 
     	return {
@@ -33239,9 +33592,9 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			button.className = "uk-button svelte-1cogzlj";
+    			button.className = "uk-button svelte-1bmzwf5";
     			attr(button, "uk-icon", "google");
-    			add_location(button, file$8, 62, 10, 1719);
+    			add_location(button, file$8, 67, 8, 1724);
     			dispose = listen(button, "click", login);
     		},
 
@@ -33264,7 +33617,7 @@ var app = (function () {
     	};
     }
 
-    // (59:8) {#if user}
+    // (59:6) {#if user}
     function create_if_block$5(ctx) {
     	var t0, button, t1, current, dispose;
 
@@ -33289,7 +33642,7 @@ var app = (function () {
 
     		l: function claim(nodes) {
     			profile.$$.fragment.l(nodes);
-    			t0 = claim_text(nodes, "\n          ");
+    			t0 = claim_text(nodes, "\n        ");
 
     			button = claim_element(nodes, "BUTTON", { class: true, "uk-icon": true }, false);
     			var button_nodes = children(button);
@@ -33300,9 +33653,9 @@ var app = (function () {
     		},
 
     		h: function hydrate() {
-    			button.className = "uk-button uk-button-secondary svelte-1cogzlj";
+    			button.className = "uk-button uk-button-secondary svelte-1bmzwf5";
     			attr(button, "uk-icon", "google");
-    			add_location(button, file$8, 60, 10, 1580);
+    			add_location(button, file$8, 60, 8, 1541);
     			dispose = listen(button, "click", ctx.click_handler);
     		},
 
@@ -33346,7 +33699,7 @@ var app = (function () {
     	};
     }
 
-    // (71:6) <Route path="/">
+    // (76:4) <Route path="/">
     function create_default_slot_2(ctx) {
     	var current;
 
@@ -33399,7 +33752,7 @@ var app = (function () {
     	};
     }
 
-    // (72:6) <Route path="/sites">
+    // (79:4) <Route path="/sites">
     function create_default_slot_1(ctx) {
     	var current;
 
@@ -33437,7 +33790,7 @@ var app = (function () {
     	};
     }
 
-    // (54:0) <Router url="{url}">
+    // (54:0) <Router {url}>
     function create_default_slot(ctx) {
     	var nav, t0, t1, div0, current_block_type_index, if_block, t2, div1, t3, current;
 
@@ -33462,7 +33815,7 @@ var app = (function () {
 
     	var if_block_creators = [
     		create_if_block$5,
-    		create_else_block$2
+    		create_else_block$3
     	];
 
     	var if_blocks = [];
@@ -33517,7 +33870,7 @@ var app = (function () {
     			link0.$$.fragment.l(nav_nodes);
     			t0 = claim_text(nav_nodes, "\n    ");
     			link1.$$.fragment.l(nav_nodes);
-    			t1 = claim_text(nav_nodes, "\n      ");
+    			t1 = claim_text(nav_nodes, "\n    ");
 
     			div0 = claim_element(nav_nodes, "DIV", { class: true }, false);
     			var div0_nodes = children(div0);
@@ -33525,23 +33878,23 @@ var app = (function () {
     			if_block.l(div0_nodes);
     			div0_nodes.forEach(detach);
     			nav_nodes.forEach(detach);
-    			t2 = claim_text(nodes, "\n\n    ");
+    			t2 = claim_text(nodes, "\n\n  ");
 
     			div1 = claim_element(nodes, "DIV", {}, false);
     			var div1_nodes = children(div1);
 
     			route0.$$.fragment.l(div1_nodes);
-    			t3 = claim_text(div1_nodes, "\n      ");
+    			t3 = claim_text(div1_nodes, "\n    ");
     			route1.$$.fragment.l(div1_nodes);
     			div1_nodes.forEach(detach);
     			this.h();
     		},
 
     		h: function hydrate() {
-    			div0.className = "login svelte-1cogzlj";
-    			add_location(div0, file$8, 57, 6, 1499);
-    			add_location(nav, file$8, 54, 2, 1416);
-    			add_location(div1, file$8, 69, 4, 1860);
+    			div0.className = "login svelte-1bmzwf5";
+    			add_location(div0, file$8, 57, 4, 1466);
+    			add_location(nav, file$8, 54, 2, 1385);
+    			add_location(div1, file$8, 74, 2, 1854);
     		},
 
     		m: function mount(target, anchor) {
@@ -33699,7 +34052,7 @@ var app = (function () {
     }
 
     function login() {
-        auth.signInWithPopup(googleProvider);
+      auth.signInWithPopup(googleProvider);
     }
 
     function instance$a($$self, $$props, $$invalidate) {
@@ -33707,9 +34060,9 @@ var app = (function () {
       // import NavLink from "./components/NavLink.svelte";
       // import { Home, About, Blog, BlogPost } from "./routes";
       let { url = "", user } = $$props;
-      
-      const unsubscribe = authState(auth).subscribe(u => { const $$result = user = u; $$invalidate('user', user); return $$result; });
-      if(unsubscribe){
+
+      const unsubscribe = authState(auth).subscribe(u => { const $$result = (user = u); $$invalidate('user', user); return $$result; });
+      if (unsubscribe) {
         console.log(unsubscribe);
       }
 
